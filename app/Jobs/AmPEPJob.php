@@ -29,6 +29,6 @@ class AmPEPJob implements ShouldQueue
      */
     public function handle()
     {
-        //
+        echo('HiHi');
     }
 }
