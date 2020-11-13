@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Illuminate\Support\Facades\Storage;
 
 class AmPEPJob implements ShouldQueue
 {
@@ -35,15 +36,20 @@ class AmPEPJob implements ShouldQueue
     {
         echo ('HiHi');
         $uuid = Str::uuid();
+        Storage::makeDirectory("Result/$uuid/");
+
         $process = new Process(['Rscript', '../AmPEP/predict.R', '../AmPEP/input.fasta', "../AmPEP/$uuid.out"]);
         $process->setTimeout(3600);
         $process->run();
 
-        // executes after the command finishes
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
+        $process2 = new Process(['COPY', "..\AmPEP\\$uuid.out", "storage/app/Result/$uuid/"]);
+        $process2->run();
 
-        echo $process->getOutput();
+        // // executes after the command finishes
+        // if (!$process->isSuccessful()) {
+        //     throw new ProcessFailedException($process);
+        // }
+
+        echo $process2->getOutput();
     }
 }
