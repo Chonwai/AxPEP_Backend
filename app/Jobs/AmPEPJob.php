@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
@@ -32,7 +34,8 @@ class AmPEPJob implements ShouldQueue
     public function handle()
     {
         echo ('HiHi');
-        $process = new Process(['py', '../test.py']);
+        $uuid = Str::uuid();
+        $process = new Process(['Rscript', '../AmPEP/predict.R', '../AmPEP/input.fasta', "../AmPEP/$uuid.out"]);
         $process->setTimeout(3600);
         $process->run();
 
