@@ -20,5 +20,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::prefix('/v1/axpep')->group(function () {
-    Route::get('/job', [JobController::class, 'test']);
+    Route::post('/job/file', [JobController::class, 'createNewTaskByFile']);
 });
