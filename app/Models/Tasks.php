@@ -18,7 +18,7 @@ class Tasks extends Model
      */
     protected $fillable = [
         'id',
-        'email ',
+        'email',
         'action',
         'source',
         'description',
@@ -52,4 +52,14 @@ class Tasks extends Model
     protected $attributes = [
         'action' => 'ready',
     ];
+
+    /**
+     * Return the related object.
+     *
+     * @return object
+     */
+    public function details()
+    {
+        return $this->hasMany('App\Models\TasksMethods', 'task_id', 'id');
+    }
 }

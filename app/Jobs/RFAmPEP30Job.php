@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Utils\TaskUtils;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -12,14 +13,16 @@ class RFAmPEP30Job implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private $task;
+
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($task)
     {
-        //
+        $this->task = $task;
     }
 
     /**
@@ -29,6 +32,8 @@ class RFAmPEP30Job implements ShouldQueue
      */
     public function handle()
     {
-        //
+        echo ('Running ' . $this->task->id . ' AcPEP Task!');
+
+        TaskUtils::runAcPEPTask($this->task);
     }
 }

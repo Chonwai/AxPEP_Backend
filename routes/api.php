@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Apis\JobController;
+use App\Http\Controllers\Apis\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,5 +20,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::prefix('/v1/axpep')->group(function () {
-    Route::post('/job/file', [JobController::class, 'createNewTaskByFile']);
+    Route::post('/job/file', [TaskController::class, 'createNewTaskByFile']);
 });

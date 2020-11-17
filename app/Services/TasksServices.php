@@ -2,10 +2,16 @@
 
 namespace App\Services;
 
+use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
+use App\Jobs\AmPEPJob;
+use App\Jobs\RFAmPEP30Job;
 use App\Utils\ResponseUtils;
+use App\Utils\TaskUtils;
 use App\Utils\Utils;
-use GuzzleHttp\Psr7\Request;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class TasksServices implements BaseServicesInterface
@@ -51,6 +57,16 @@ class TasksServices implements BaseServicesInterface
 
     public function createNewTaskByFile(Request $request)
     {
+        $data = DAOSimpleFactory::createTasksDAO()->insert($request);
 
+        TaskUtils::createTaskFolder($data);
+
+        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
+
+        AmPEPJob::dispatch($data)->delay(Carbon::now()->addSeconds(3));
+
+        RFAmPEP30Job::dispatch($data)->delay(Carbon::now()->addSeconds(3));
+
+        return $data;
     }
 }

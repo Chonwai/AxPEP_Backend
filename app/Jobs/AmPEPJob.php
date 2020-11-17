@@ -2,29 +2,27 @@
 
 namespace App\Jobs;
 
-use Carbon\Carbon;
+use App\Utils\TaskUtils;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Str;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
-use Illuminate\Support\Facades\Storage;
 
 class AmPEPJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    private $task;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($task)
     {
-        //
+        $this->task = $task;
     }
 
     /**
@@ -34,22 +32,8 @@ class AmPEPJob implements ShouldQueue
      */
     public function handle()
     {
-        echo ('HiHi');
-        $uuid = Str::uuid();
-        Storage::makeDirectory("Result/$uuid/");
+        echo ('Running ' . $this->task->id . ' AmPEP Task!');
 
-        $process = new Process(['Rscript', '../AmPEP/predict.R', '../AmPEP/input.fasta', "../AmPEP/$uuid.out"]);
-        $process->setTimeout(3600);
-        $process->run();
-
-        $process2 = new Process(['COPY', "..\AmPEP\\$uuid.out", "storage/app/Result/$uuid/"]);
-        $process2->run();
-
-        // // executes after the command finishes
-        // if (!$process->isSuccessful()) {
-        //     throw new ProcessFailedException($process);
-        // }
-
-        echo $process2->getOutput();
+        TaskUtils::runAmPEPTask($this->task);
     }
 }

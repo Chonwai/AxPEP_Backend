@@ -21,7 +21,7 @@ class TaskController extends Controller
         $status = TasksServices::getInstance()->dataValidation($request, 'createNewTaskByFile');
 
         if ($status === true) {
-            $res = TasksServices::getInstance()->createNewTaskByFile($request, $operation = 'ssr');
+            $res = TasksServices::getInstance()->createNewTaskByFile($request);
             return $res;
         } else {
             return response()->json($status, 200);
