@@ -32,8 +32,8 @@ class RFAmPEP30Job implements ShouldQueue
      */
     public function handle()
     {
-        echo ('Running ' . $this->task->id . ' AcPEP Task!');
+        echo ('Running ' . $this->task->id . ' RFAmPEP30 Task!');
 
-        TaskUtils::runAcPEPTask($this->task);
+        TaskUtils::runRFAmPEP30Task($this->task);
     }
 }

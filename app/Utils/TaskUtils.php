@@ -25,6 +25,18 @@ class TaskUtils
         }
     }
 
+    public static function runRFAmPEP30Task($task)
+    {
+        $process = new Process(['Rscript', '../Deep-AmPEP30/RF-AmPEP30.R', "storage/app/Tasks/$task->id/input.fasta", "storage/app/Tasks/$task->id/rf_ampep30.out"]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+    }
+
     public static function runAcPEPTask($task)
     {
         $process = new Process(['Rscript', '../AcPEP/pred.R', "storage/app/Tasks/$task->id/input.fasta", "storage/app/Tasks/$task->id/acpep.out"]);
