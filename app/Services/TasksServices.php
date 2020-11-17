@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
 use App\Jobs\AmPEPJob;
+use App\Jobs\DeepAmPEP30Job;
 use App\Jobs\RFAmPEP30Job;
 use App\Utils\ResponseUtils;
 use App\Utils\TaskUtils;
@@ -66,6 +67,8 @@ class TasksServices implements BaseServicesInterface
         AmPEPJob::dispatch($data)->delay(Carbon::now()->addSeconds(3));
 
         RFAmPEP30Job::dispatch($data)->delay(Carbon::now()->addSeconds(3));
+
+        DeepAmPEP30Job::dispatch($data)->delay(Carbon::now()->addSeconds(3));
 
         return $data;
     }
