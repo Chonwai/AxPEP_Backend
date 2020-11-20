@@ -5,8 +5,6 @@ namespace App\Services;
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
 use App\Jobs\AmPEPJob;
-use App\Jobs\DeepAmPEP30Job;
-use App\Jobs\RFAmPEP30Job;
 use App\Utils\ResponseUtils;
 use App\Utils\TaskUtils;
 use App\Utils\Utils;
@@ -64,11 +62,14 @@ class TasksServices implements BaseServicesInterface
 
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
 
-        AmPEPJob::dispatch($data)->delay(Carbon::now()->addSeconds(3));
+        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(3));
 
-        RFAmPEP30Job::dispatch($data)->delay(Carbon::now()->addSeconds(3));
+        return $data;
+    }
 
-        DeepAmPEP30Job::dispatch($data)->delay(Carbon::now()->addSeconds(3));
+    public function finishedTask($taskID)
+    {
+        $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
 
         return $data;
     }

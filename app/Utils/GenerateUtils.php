@@ -22,4 +22,16 @@ class GenerateUtils
     {
         return array_merge($originalArray, $additionalArray);
     }
+
+    /**
+     * Generate ORM Update Object which can directly update to DB by ORM.
+     *
+     * @method
+     * @return Array
+     */
+    public static function generateFinishedTasksObject($task_id, $action_state)
+    {
+        $accessObject = (object) ['id' => $task_id, 'action' => $action_state];
+        return $accessObject;
+    }
 }

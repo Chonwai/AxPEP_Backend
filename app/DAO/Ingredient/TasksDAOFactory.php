@@ -4,7 +4,6 @@ namespace App\DAO\Ingredient;
 
 use App\DAO\Ingredient\BaseDAOFactory;
 use App\Models\Tasks;
-use App\Models\User;
 use Illuminate\Support\Str;
 
 class TasksDAOFactory implements BaseDAOFactory
@@ -42,13 +41,19 @@ class TasksDAOFactory implements BaseDAOFactory
 
     public function update($request)
     {
-        $data = User::where('id', $request->id)->update($request->all());
+        $data = Tasks::where('id', $request->id)->update($request->all());
+        return $data;
+    }
+
+    public function finished($id)
+    {
+        $data = Tasks::where('id', $id)->update(['action' => 'finished']);
         return $data;
     }
 
     public function countAll()
     {
-        $data = User::count('id');
+        $data = Tasks::count('id');
         return $data;
     }
 }
