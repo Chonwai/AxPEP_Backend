@@ -25,9 +25,17 @@ Route::prefix('/v1/axpep')->group(function () {
      *
      * @api
      */
-    // Create task by file
+    // Response Specify Task By ID
+    Route::get('/tasks/{id}', [TaskController::class, 'responseSpecify']);
+
+    // Create Task by File
     Route::post('/tasks/file', [TaskController::class, 'createNewTaskByFile']);
 
+    /**
+     * Searching API ------------------------------------------------------------
+     *
+     * @api
+     */
     // Searching Task By Email
     Route::get('/emails/{email}/tasks', [TaskController::class, 'responseSpecifyTaskByEmail']);
 });

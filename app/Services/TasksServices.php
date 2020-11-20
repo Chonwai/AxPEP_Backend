@@ -57,6 +57,12 @@ class TasksServices implements BaseServicesInterface
         }
     }
 
+    public function responseSpecify(Request $request)
+    {
+        $data = DAOSimpleFactory::createTasksDAO()->getSpecify($request);
+        return $data;
+    }
+
     public function responseSpecifyTaskByEmail(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request);

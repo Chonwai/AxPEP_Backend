@@ -16,7 +16,7 @@ class TasksDAOFactory implements BaseDAOFactory
 
     public function getSpecify($request)
     {
-        $data = Tasks::where('id', $request->response_id ? $request->response_id : $request->id)->get();
+        $data = Tasks::where('id', $request->id)->get();
         return $data;
     }
 

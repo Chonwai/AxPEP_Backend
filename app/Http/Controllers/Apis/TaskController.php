@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    public function responseSpecify(Request $request)
+    {
+        RequestUtils::addTaskID($request);
+        $res = TasksServices::getInstance()->responseSpecify($request);
+        return $res;
+    }
+
     public function responseSpecifyTaskByEmail(Request $request)
     {
         RequestUtils::addEmail($request);

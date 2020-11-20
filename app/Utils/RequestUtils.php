@@ -10,4 +10,9 @@ class RequestUtils
     {
         $request->request->add(['email' => $request->email]);
     }
+
+    public static function addTaskID(Request $request)
+    {
+        $request->request->add(['id' => $request->id]);
+    }
 }
