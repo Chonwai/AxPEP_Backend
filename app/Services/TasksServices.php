@@ -41,6 +41,9 @@ class TasksServices implements BaseServicesInterface
             case 'createNewTaskByFile':
                 $validator = Validator::make($request->all(), TasksRules::fileRules());
                 break;
+            case 'responseSpecifyTaskByEmail':
+                $validator = Validator::make($request->all(), TasksRules::emailRules());
+                break;
             default:
                 # code...
                 break;
@@ -54,23 +57,24 @@ class TasksServices implements BaseServicesInterface
         }
     }
 
+    public function responseSpecifyTaskByEmail(Request $request)
+    {
+        $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request);
+        return $data;
+    }
+
     public function createNewTaskByFile(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
-
         TaskUtils::createTaskFolder($data);
-
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
-
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(3));
-
         return $data;
     }
 
     public function finishedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
-
         return $data;
     }
 }

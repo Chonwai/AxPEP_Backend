@@ -17,7 +17,12 @@ class TasksDAOFactory implements BaseDAOFactory
     public function getSpecify($request)
     {
         $data = Tasks::where('id', $request->response_id ? $request->response_id : $request->id)->get();
+        return $data;
+    }
 
+    public function getSpecifyTaskByEmail($request)
+    {
+        $data = Tasks::where('email', $request->email)->orderBy('updated_at', 'DESC')->paginate(20);
         return $data;
     }
 

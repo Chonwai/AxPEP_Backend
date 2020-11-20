@@ -39,4 +39,16 @@ class TasksRules extends FormRequest
             'file' => 'required|file|mimes:txt',
         ];
     }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public static function emailRules()
+    {
+        return [
+            'email' => 'required|email',
+        ];
+    }
 }

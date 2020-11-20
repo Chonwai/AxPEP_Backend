@@ -20,5 +20,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::prefix('/v1/axpep')->group(function () {
-    Route::post('/job/file', [TaskController::class, 'createNewTaskByFile']);
+    /**
+     * Tasks API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Create task by file
+    Route::post('/tasks/file', [TaskController::class, 'createNewTaskByFile']);
+
+    // Searching Task By Email
+    Route::get('/emails/{email}/tasks', [TaskController::class, 'responseSpecifyTaskByEmail']);
 });
