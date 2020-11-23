@@ -31,7 +31,7 @@ class TasksDAOFactory implements BaseDAOFactory
         $data = Tasks::create([
             'id' => Str::uuid()->toString(),
             'email' => $request->email,
-            'action' => 'ready',
+            'action' => 'running',
             'source' => $request->source,
             'description' => $request->description,
             'ip' => $request->ip(),

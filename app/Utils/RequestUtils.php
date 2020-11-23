@@ -15,4 +15,15 @@ class RequestUtils
     {
         $request->request->add(['id' => $request->id]);
     }
+
+    /**
+     * Add Specific Input on $request.
+     * @param array $specificInput
+     * @param Request $request
+     * @return void
+     */
+    public static function addSpecificInput($specificInput)
+    {
+        request()->merge($specificInput);
+    }
 }

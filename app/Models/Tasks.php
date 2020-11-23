@@ -50,7 +50,7 @@ class Tasks extends Model
      * @var array
      */
     protected $attributes = [
-        'action' => 'ready',
+        'action' => 'running',
     ];
 
     /**
