@@ -20,6 +20,12 @@ class TasksMethodsDAOFactory implements BaseDAOFactory
         return $data;
     }
 
+    public function getSpecifyByTaskID($task_id)
+    {
+        $data = TasksMethods::where('task_id', $task_id)->get();
+        return $data;
+    }
+
     public function insert($request)
     {
         $data = TasksMethods::create([

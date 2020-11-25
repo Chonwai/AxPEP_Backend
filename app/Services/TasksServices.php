@@ -108,6 +108,8 @@ class TasksServices implements BaseServicesInterface
     public function finishedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
+        $methods = DAOSimpleFactory::createTasksMethodsDAO()->getSpecifyByTaskID($taskID);
+        FileUtils::writeResultFile($taskID, $methods);
         return $data;
     }
 }
