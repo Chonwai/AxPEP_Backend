@@ -79,7 +79,7 @@ class TasksServices implements BaseServicesInterface
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods);
-        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(3));
+        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return $data;
     }
 

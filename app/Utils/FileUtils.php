@@ -3,6 +3,7 @@
 namespace App\Utils;
 
 use App\Imports\AmPEPResultImport;
+use App\Imports\OutImport;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -33,10 +34,13 @@ class FileUtils
             $i++;
             if ($i % 2 == 1) {
                 $id = ltrim($line, ">");
+                $id = ltrim(str_replace("\r\n", '', $id));
+                echo(json_encode($id));
             } else {
                 $sequence = $line;
-                fputcsv($fClassification, array_merge(['id' => str_replace(PHP_EOL, '', $id)], $methodArray, ['number_of_positives' => ''], ['sequence' => str_replace(PHP_EOL, '', $sequence)]));
-                fputcsv($fScore, array_merge(['id' => str_replace(PHP_EOL, '', $id)], $methodArray, ['product_of_probability' => ''], ['sequence' => str_replace(PHP_EOL, '', $sequence)]));
+                $sequence = ltrim(str_replace("\r\n", '', $sequence));
+                fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['number_of_positives' => ''], ['sequence' => ltrim(str_replace(PHP_EOL, '', $sequence))]));
+                fputcsv($fScore, array_merge(['id' => $id], $methodArray, ['product_of_probability' => ''], ['sequence' => ltrim(str_replace(PHP_EOL, '', $sequence))]));
             }
         }
     }
@@ -44,23 +48,28 @@ class FileUtils
     public static function writeResultFile($id, $methods)
     {
         foreach ($methods as $key => $value) {
-            switch ($value->method) {
-                case 'ampep':
-                    // $fResult = fopen("../storage/app/Tasks/$id/ampep.out", 'r');
-                    $fResult = Excel::toCollection(new AmPEPResultImport, "Tasks/$id/ampep.out", \Maatwebsite\Excel\Excel::TSV);
-                    $collection = Excel::toCollection(new AmPEPResultImport, "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
-                    echo (json_encode($collection[0]));
-                    // echo (json_encode($fResult[0]));
-                    break;
-                case 'deepampep30':
-                    # code...
-                    break;
-                case 'rfampep30':
-                    # code...
-                    break;
-            }
+            self::matching($id, $value->method);
         }
     }
 
-    // public static function
+    public static function matching($id, $method) {
+        $fResult = Excel::toArray(new OutImport, "Tasks/$id/$method.out", null, \Maatwebsite\Excel\Excel::TSV);
+        $classificationArray = Excel::toArray(new AmPEPResultImport, "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
+        $scoreArray = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
+        foreach ($fResult[0] as $key => $value) {
+            $result = explode(" ", $value[0]);
+            $classificationArray[0] = array_map(function($value) use ($result, $method) {
+                if ($value['id'] == $result[0]) {
+                    $value["$method"] = $result[1];
+                }
+                return $value;
+            }, $classificationArray[0]);
+            $scoreArray[0] = array_map(function($value) use ($result, $method) {
+                if ($value['id'] == $result[0]) {
+                    $value["$method"] = $result[1];
+                }
+                return $value;
+            }, $scoreArray[0]);
+        }
+    }
 }
