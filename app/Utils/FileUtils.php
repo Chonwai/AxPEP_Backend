@@ -36,11 +36,15 @@ class FileUtils
             if ($i % 2 == 1) {
                 $id = ltrim($line, ">");
                 $id = ltrim(str_replace("\r\n", '', $id));
+                $id = ltrim(str_replace("\n", '', $id));
+                $id = ltrim(str_replace(PHP_EOL, '', $id));
             } else {
-                $sequence = $line;
+                $sequence = ltrim($line);
                 $sequence = ltrim(str_replace("\r\n", '', $sequence));
-                fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['number_of_positives' => ''], ['sequence' => ltrim(str_replace(PHP_EOL, '', $sequence))]));
-                fputcsv($fScore, array_merge(['id' => $id], $methodArray, ['product_of_probability' => ''], ['sequence' => ltrim(str_replace(PHP_EOL, '', $sequence))]));
+                $sequence = ltrim(str_replace("\n", '', $sequence));
+                $sequence = ltrim(str_replace(PHP_EOL, '', $sequence));
+                fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['number_of_positives' => ''], ['sequence' => $sequence]));
+                fputcsv($fScore, array_merge(['id' => $id], $methodArray, ['product_of_probability' => ''], ['sequence' => $sequence]));
             }
         }
     }
