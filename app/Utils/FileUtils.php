@@ -45,18 +45,21 @@ class FileUtils
         }
     }
 
-    public static function writeResultFile($id, $methods)
-    {
+    public static function loadResultFile($id, $methods) {
         $classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
         $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
+        return [$classifications, $scores];
+    }
+
+    public static function writeResultFile($id, $methods)
+    {
+        [$classifications, $scores] = self::loadResultFile($id, $methods);
 
         foreach ($methods as $key => $value) {
-            $matchResult = self::matching($id, $value->method, $classifications, $scores);
-            $classifications = $matchResult[0];
-            $scores = $matchResult[1];
+            [$classifications, $scores] = self::matching($id, $value->method, $classifications, $scores);
         }
 
-
+        [$classifications, $scores] = self::calculateResultFile($classifications, $scores, $methods);
 
         Excel::store(new AmPEPResultExport($classifications[0]), "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
         Excel::store(new AmPEPResultExport($scores[0]), "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
@@ -80,6 +83,30 @@ class FileUtils
                 return $value;
             }, $scores[0]);
         }
+        return [$classifications, $scores];
+    }
+
+    public static function calculateResultFile($classifications, $scores, $methods) {
+        $classifications[0] = array_map(function ($value) use ($methods) {
+            $numberOfPositives = 0;
+            foreach ($methods as $key => $method) {
+                if ($value["$method->method"] == "1") {
+                    $numberOfPositives++;
+                } 
+            }
+            $value['number_of_positives'] = $numberOfPositives;
+            return $value;
+        }, $classifications[0]);
+
+        $scores[0] = array_map(function ($value) use ($methods) {
+            $productOfProbability = 1;
+            foreach ($methods as $key => $method) {
+                $productOfProbability = $productOfProbability * $value["$method->method"];
+            }
+            $value['product_of_probability'] = $productOfProbability;
+            return $value;
+        }, $scores[0]);
+
         return [$classifications, $scores];
     }
 }
