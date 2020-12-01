@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\FastaRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TasksRules extends FormRequest
@@ -36,7 +37,7 @@ class TasksRules extends FormRequest
     public static function fileRules()
     {
         return [
-            'file' => 'required|file|mimes:txt',
+            'file' => ["required", "file", "mimes:txt", new FastaRule],
         ];
     }
 
