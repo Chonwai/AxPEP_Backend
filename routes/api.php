@@ -31,6 +31,9 @@ Route::prefix('/v1/axpep')->group(function () {
     // Create Task by File
     Route::post('/tasks/file', [TaskController::class, 'createNewTaskByFile']);
 
+    // Create Task by Textarea
+    Route::post('/tasks/textarea', [TaskController::class, 'createNewTaskByTextarea']);
+
     /**
      * Searching API ------------------------------------------------------------
      *

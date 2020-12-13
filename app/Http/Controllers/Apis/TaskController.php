@@ -41,4 +41,16 @@ class TaskController extends Controller
             return response()->json($status, 200);
         }
     }
+
+    public function createNewTaskByTextarea(Request $request)
+    {
+        $status = TasksServices::getInstance()->dataValidation($request, 'createNewTaskByTextarea');
+
+        if ($status === true) {
+            $res = TasksServices::getInstance()->createNewTaskByTextarea($request);
+            return $res;
+        } else {
+            return response()->json($status, 200);
+        }
+    }
 }
