@@ -4,17 +4,19 @@ namespace App\Services;
 
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
+use App\Imports\AmPEPResultImport;
 use App\Jobs\AmPEPJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
-use App\Utils\Res\ResFactoryUtils;
 use App\Utils\ResponseUtils;
+use App\Utils\Res\ResFactoryUtils;
 use App\Utils\TaskUtils;
 use App\Utils\Utils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TasksServices implements BaseServicesInterface
 {
@@ -66,6 +68,8 @@ class TasksServices implements BaseServicesInterface
     public function responseSpecify(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->getSpecify($request);
+        $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+        $data[0]->scores = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/score.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -87,7 +91,8 @@ class TasksServices implements BaseServicesInterface
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
-    public function createNewTaskByTextarea(Request $request) {
+    public function createNewTaskByTextarea(Request $request)
+    {
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
