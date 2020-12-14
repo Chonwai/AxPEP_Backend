@@ -7,6 +7,7 @@ use App\Http\Requests\TasksRules;
 use App\Jobs\AmPEPJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
+use App\Utils\Res\ResFactoryUtils;
 use App\Utils\ResponseUtils;
 use App\Utils\TaskUtils;
 use App\Utils\Utils;
@@ -65,13 +66,13 @@ class TasksServices implements BaseServicesInterface
     public function responseSpecify(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->getSpecify($request);
-        return $data;
+        return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function responseSpecifyTaskByEmail(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request);
-        return $data;
+        return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function createNewTaskByFile(Request $request)
@@ -83,7 +84,7 @@ class TasksServices implements BaseServicesInterface
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods);
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
-        return $data;
+        return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function createNewTaskByTextarea(Request $request) {
@@ -94,7 +95,7 @@ class TasksServices implements BaseServicesInterface
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods);
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
-        return $data;
+        return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function insertTasksMethods($request, $data)
