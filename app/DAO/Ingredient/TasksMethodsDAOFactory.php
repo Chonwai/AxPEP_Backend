@@ -10,7 +10,7 @@ class TasksMethodsDAOFactory implements BaseDAOFactory
 {
     public function getAll()
     {
-        $data = TasksMethods::paginate(20);
+        $data = TasksMethods::paginate(15);
         return $data;
     }
 
