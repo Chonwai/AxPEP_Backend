@@ -52,6 +52,9 @@ class TasksServices implements BaseServicesInterface
             case 'createNewTaskByTextarea':
                 $validator = Validator::make($request->all(), TasksRules::textareaRules());
                 break;
+            case 'createNewTaskByFileAndCodon':
+                $validator = Validator::make($request->all(), TasksRules::fileAndCodonRules());
+                break;
             default:
                 # code...
                 break;
@@ -97,6 +100,17 @@ class TasksServices implements BaseServicesInterface
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
         Storage::disk('local')->put("Tasks/$data->id/input.fasta", $request->fasta);
+        FileUtils::createResultFile("Tasks/$data->id/", $methods);
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods);
+        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+        return ResFactoryUtils::getServicesRes($data, 'fail');
+    }
+
+    public function createNewTaskByFileAndCodon(Request $request) {
+        $data = DAOSimpleFactory::createTasksDAO()->insert($request);
+        $methods = $this->insertTasksMethods($request, $data);
+        TaskUtils::createTaskFolder($data);
+        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods);
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));

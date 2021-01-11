@@ -64,4 +64,17 @@ class TasksRules extends FormRequest
             'email' => 'required|email',
         ];
     }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public static function fileAndCodonRules()
+    {
+        return [
+            'file' => ["required", "file", "mimes:txt", new FastaRule],
+            'codon' => 'required',
+        ];
+    }
 }

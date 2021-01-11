@@ -53,4 +53,16 @@ class TaskController extends Controller
             return response()->json($status, 200);
         }
     }
+
+    public function createNewTaskByFileAndCodon(Request $request)
+    {
+        $status = TasksServices::getInstance()->dataValidation($request, 'createNewTaskByFileAndCodon');
+
+        if ($status === true) {
+            $res = TasksServices::getInstance()->createNewTaskByFileAndCodon($request);
+            return $res;
+        } else {
+            return response()->json($status, 200);
+        }
+    }
 }
