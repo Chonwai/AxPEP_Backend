@@ -34,6 +34,18 @@ class TasksRules extends FormRequest
      *
      * @return array
      */
+    public static function textareaRules()
+    {
+        return [
+            'fasta' => 'required',
+        ];
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
     public static function fileRules()
     {
         return [

@@ -50,7 +50,7 @@ class TasksServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::emailRules());
                 break;
             case 'createNewTaskByTextarea':
-                $validator = Validator::make($request->all(), TasksRules::rules());
+                $validator = Validator::make($request->all(), TasksRules::textareaRules());
                 break;
             default:
                 # code...
