@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\FastaFormatRule;
 use App\Rules\FastaRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -37,7 +38,7 @@ class TasksRules extends FormRequest
     public static function textareaRules()
     {
         return [
-            'fasta' => 'required',
+            'fasta' => ['required', new FastaFormatRule],
         ];
     }
 

@@ -2,9 +2,11 @@
 
 namespace App\Rules;
 
+use App\Utils\FormatUtils;
+use App\Utils\Utils;
 use Illuminate\Contracts\Validation\Rule;
 
-class FastaRule implements Rule
+class FastaFormatRule implements Rule
 {
     /**
      * Create a new rule instance.
@@ -25,9 +27,10 @@ class FastaRule implements Rule
      */
     public function passes($attribute, $value)
     {
-        $fasta = request()->file;
-        var_dump($fasta);
-        return false;
+        if ($attribute == 'fasta') {
+            $flag = FormatUtils::checkFASTAFormat($value);
+        }
+        return $flag;
     }
 
     /**
@@ -37,6 +40,6 @@ class FastaRule implements Rule
      */
     public function message()
     {
-        return 'The fasta format error!';
+        return 'The Fasta format is not correct.';
     }
 }
