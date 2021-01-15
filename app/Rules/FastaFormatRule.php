@@ -4,10 +4,14 @@ namespace App\Rules;
 
 use App\Utils\FormatUtils;
 use App\Utils\Utils;
+use Facade\FlareClient\Stacktrace\File;
 use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Http\File as HttpFile;
 
 class FastaFormatRule implements Rule
 {
+    private $error;
+
     /**
      * Create a new rule instance.
      *
@@ -29,8 +33,16 @@ class FastaFormatRule implements Rule
     {
         if ($attribute == 'fasta') {
             $flag = FormatUtils::checkFASTAFormat($value);
+        } elseif ($attribute == 'file') {
+            $data = file_get_contents($value->getRealPath());
+            $flag = FormatUtils::checkFASTAFormat($data);
         }
-        return $flag;
+        if ($flag !== true) {
+            $this->error = $flag;
+            return false;
+        } else {
+            return $flag;
+        }
     }
 
     /**
@@ -40,6 +52,6 @@ class FastaFormatRule implements Rule
      */
     public function message()
     {
-        return 'The Fasta format is not correct.';
+        return $this->error;
     }
 }

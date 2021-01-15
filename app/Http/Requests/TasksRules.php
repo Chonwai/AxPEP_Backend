@@ -50,7 +50,7 @@ class TasksRules extends FormRequest
     public static function fileRules()
     {
         return [
-            'file' => ["required", "file", "mimes:txt", new FastaRule],
+            'file' => ["required", "file", "mimes:txt", new FastaFormatRule],
         ];
     }
 
