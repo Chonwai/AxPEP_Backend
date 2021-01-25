@@ -92,7 +92,7 @@ class FileUtils
 
     public static function calculateResultFile($classifications, $scores, $methods) {
         $classifications[0] = array_map(function ($value) use ($methods) {
-            $numberOfPositives = 0;
+            $numberOfPositives = '0';
             foreach ($methods as $key => $method) {
                 if ($value["$method->method"] == "1") {
                     $numberOfPositives++;
