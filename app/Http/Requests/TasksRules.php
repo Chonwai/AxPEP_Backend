@@ -26,7 +26,7 @@ class TasksRules extends FormRequest
     public static function rules()
     {
         return [
-            //
+            'id' => ['required', 'exists:tasks,id'],
         ];
     }
 

@@ -55,6 +55,12 @@ class TasksServices implements BaseServicesInterface
             case 'createNewTaskByFileAndCodon':
                 $validator = Validator::make($request->all(), TasksRules::fileAndCodonRules());
                 break;
+            case 'downloadSpecifyClassification':
+                $validator = Validator::make($request->all(), TasksRules::rules());
+                break;
+            case 'downloadSpecifyPredictionScore':
+                $validator = Validator::make($request->all(), TasksRules::rules());
+                break;
             default:
                 # code...
                 break;
@@ -82,6 +88,18 @@ class TasksServices implements BaseServicesInterface
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
+    public function downloadSpecifyClassification(Request $request)
+    {
+        $file = Storage::download("Tasks/$request->id/classification.csv");
+        return $file;
+    }
+
+    public function downloadSpecifyPredictionScore(Request $request)
+    {
+        $file = Storage::download("Tasks/$request->id/score.csv");
+        return $file;
+    }
+
     public function createNewTaskByFile(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
@@ -106,7 +124,8 @@ class TasksServices implements BaseServicesInterface
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
-    public function createNewTaskByFileAndCodon(Request $request) {
+    public function createNewTaskByFileAndCodon(Request $request)
+    {
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
