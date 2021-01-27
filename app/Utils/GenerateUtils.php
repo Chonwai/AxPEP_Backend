@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class GenerateUtils
@@ -35,6 +36,20 @@ class GenerateUtils
         foreach ($records as $record) {
             $location = geoip($record->ip);
             array_push($object, (object) ['latitude' => $location->lat, 'longitude' => $location->lon]);
+        }
+        return $object;
+    }
+
+    public static function generateCountTasksNumber($records, $days)
+    {
+        $object = [];
+        for ($i = 1; $i <= $days; $i++) {
+            array_push($object, (object) ['days_ago' => $i, 'date' => Carbon::now()->subDays($i)->toDateString(), 'total' => 0]);
+            foreach ($records as $record) {
+                if ($record->date === $object[$i - 1]->date) {
+                    $object[$i - 1]->total = $record->total;
+                }
+            }
         }
         return $object;
     }

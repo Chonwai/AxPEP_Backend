@@ -77,4 +77,12 @@ class TasksDAOFactory implements BaseDAOFactory
 
         return $data;
     }
+
+    public function countTasksNDays($request) {
+        $tasks = Tasks::select(DB::raw('DATE(created_at) as date'), DB::raw('count(created_at) as total'))->where('created_at', '>=', Carbon::now()->subDays($request->days_ago + 1)->toDateString())->groupBy(DB::raw('DATE(created_at)'))->get();
+        
+        $data = GenerateUtils::generateCountTasksNumber($tasks, $request->days_ago);
+        
+        return $data;
+    }
 }

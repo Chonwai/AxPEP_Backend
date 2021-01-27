@@ -53,6 +53,9 @@ Route::prefix('/v1/axpep')->group(function () {
      *
      * @api
      */
-    // Count N Days Tasks API
+    // Count N Days Location API
     Route::get('/analysis/count/tasks/locations', [TaskController::class, 'countDistinctIpNDays']);
+
+    // Count N Days Task API
+    Route::get('/analysis/count/tasks', [TaskController::class, 'countTasksNDays']);
 });
