@@ -165,4 +165,9 @@ class TasksServices implements BaseServicesInterface
         FileUtils::writeResultFile($taskID, $methods);
         return $data;
     }
+
+    public function countDistinctIpNDays($request) {
+        $data = DAOSimpleFactory::createTasksDAO()->countDistinctIpNDays($request);
+        return ResFactoryUtils::getServicesRes($data, 'fail');
+    }
 }

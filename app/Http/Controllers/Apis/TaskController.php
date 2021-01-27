@@ -91,4 +91,10 @@ class TaskController extends Controller
             return response()->json($status, 200);
         }
     }
+
+    public function countDistinctIpNDays(Request $request) {
+        $data = TasksServices::getInstance()->countDistinctIpNDays($request);
+
+        return $data;
+    }
 }

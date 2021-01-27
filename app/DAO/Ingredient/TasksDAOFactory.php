@@ -4,6 +4,9 @@ namespace App\DAO\Ingredient;
 
 use App\DAO\Ingredient\BaseDAOFactory;
 use App\Models\Tasks;
+use App\Utils\GenerateUtils;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TasksDAOFactory implements BaseDAOFactory
@@ -59,6 +62,19 @@ class TasksDAOFactory implements BaseDAOFactory
     public function countAll()
     {
         $data = Tasks::count('id');
+        return $data;
+    }
+
+    public function countDistinctIpNDays($request)
+    {
+        // $subscriptions = Tasks::select(DB::raw('DATE(created_at) as date'), DB::raw('count(created_at) as total'))->where('created_at', '>=', Carbon::now()->subDays($request->days_ago + 1)->toDateString())->groupBy(DB::raw('DATE(created_at)'))->get();
+        
+        // $subscriptions = Tasks::where('created_at', '>=', Carbon::now()->subDays($request->days_ago + 1)->toDateString())->get();
+
+        $tasks = DB::select('SELECT DISTINCT ip FROM tasks WHERE created_at >= ?', [Carbon::now()->subDays($request->days_ago + 1)]);
+
+        $data = GenerateUtils::generateLocationsListByIps($tasks);
+
         return $data;
     }
 }

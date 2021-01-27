@@ -47,4 +47,12 @@ Route::prefix('/v1/axpep')->group(function () {
      */
     // Searching Task By Email
     Route::get('/emails/{email}/tasks', [TaskController::class, 'responseSpecifyTaskByEmail']);
+
+    /**
+     * Analysis API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Count N Days Tasks API
+    Route::get('/analysis/count/tasks/locations', [TaskController::class, 'countDistinctIpNDays']);
 });
