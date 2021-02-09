@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Apis\CodonController;
 use App\Http\Controllers\Apis\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -58,4 +59,12 @@ Route::prefix('/v1/axpep')->group(function () {
 
     // Count N Days Task API
     Route::get('/analysis/count/tasks', [TaskController::class, 'countTasksNDays']);
+
+    /**
+     * Codons API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Get All Codons API
+    Route::get('/codons/all', [CodonController::class, 'responseAll']);
 });
