@@ -61,8 +61,9 @@ class TaskUtils
         }
     }
 
-    public static function runRFAmPEP30CodonTask($task) {
-        $process = new Process(['Rscript', '../Deep-AmPEP30/RF-AmPEP30.R', "storage/app/Tasks/$task->id/input.fasta", "storage/app/Tasks/$task->id/rfampep30.out"]);
+    public static function runCodonTask($task, $codonCode = "1")
+    {
+        $process = new Process(['python3', '../Genome/ORF.py', "storage/app/Tasks/$task->id/codon.fasta", '1']);
         $process->setTimeout(3600);
         $process->run();
 
@@ -70,6 +71,17 @@ class TaskUtils
         if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
+    }
 
+    public static function renameCodonFasta($task)
+    {
+        $process = new Process(['mv', "storage/app/Tasks/$task->id/codon_orf.fasta", "storage/app/Tasks/$task->id/input.fasta"]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
     }
 }

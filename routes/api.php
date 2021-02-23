@@ -35,6 +35,9 @@ Route::prefix('/v1/axpep')->group(function () {
     // Create Task by Textarea
     Route::post('/tasks/textarea', [TaskController::class, 'createNewTaskByTextarea']);
 
+    // Create Task by Codon
+    Route::post('/tasks/codon', [TaskController::class, 'createNewTaskByFileAndCodon']);
+
     // Download the Classification Result File
     Route::get('/tasks/{id}/classification/download', [TaskController::class, 'downloadSpecifyClassification']);
 

@@ -6,6 +6,7 @@ use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
 use App\Imports\AmPEPResultImport;
 use App\Jobs\AmPEPJob;
+use App\Jobs\CodonJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
 use App\Utils\ResponseUtils;
@@ -53,7 +54,7 @@ class TasksServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::textareaRules());
                 break;
             case 'createNewTaskByFileAndCodon':
-                $validator = Validator::make($request->all(), TasksRules::fileAndCodonRules());
+                $validator = Validator::make($request->all(), TasksRules::codonRules());
                 break;
             case 'downloadSpecifyClassification':
                 $validator = Validator::make($request->all(), TasksRules::rules());
@@ -129,9 +130,8 @@ class TasksServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
-        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
-        FileUtils::createResultFile("Tasks/$data->id/", $methods);
-        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods);
+        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), "codon.fasta");
+        CodonJob::dispatch($data, $request->input(), $methods);
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
@@ -166,12 +166,14 @@ class TasksServices implements BaseServicesInterface
         return $data;
     }
 
-    public function countDistinctIpNDays($request) {
+    public function countDistinctIpNDays($request)
+    {
         $data = DAOSimpleFactory::createTasksDAO()->countDistinctIpNDays($request);
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
-    public function countTasksNDays($request) {
+    public function countTasksNDays($request)
+    {
         $data = DAOSimpleFactory::createTasksDAO()->countTasksNDays($request);
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }

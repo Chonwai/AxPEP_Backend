@@ -3,10 +3,7 @@
 namespace App\Rules;
 
 use App\Utils\FormatUtils;
-use App\Utils\Utils;
-use Facade\FlareClient\Stacktrace\File;
 use Illuminate\Contracts\Validation\Rule;
-use Illuminate\Http\File as HttpFile;
 
 class FastaFormatRule implements Rule
 {

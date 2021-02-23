@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Rules\FastaFormatRule;
-use App\Rules\FastaRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TasksRules extends FormRequest
@@ -71,10 +70,10 @@ class TasksRules extends FormRequest
      *
      * @return array
      */
-    public static function fileAndCodonRules()
+    public static function codonRules()
     {
         return [
-            'file' => ["required", "file", "mimes:txt", new FastaRule],
+            'file' => ["required", "file", "mimes:txt", new FastaFormatRule],
             'codon' => 'required',
         ];
     }
