@@ -63,7 +63,7 @@ class TaskUtils
 
     public static function runCodonTask($task, $codonCode = "1")
     {
-        $process = new Process(['python3', '../Genome/ORF.py', "storage/app/Tasks/$task->id/codon.fasta", '1']);
+        $process = new Process(['python3', "../Genome/ORF.py", "storage/app/Tasks/$task->id/codon.fasta", "$codonCode"]);
         $process->setTimeout(3600);
         $process->run();
 
