@@ -132,7 +132,7 @@ class TasksServices implements BaseServicesInterface
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), "codon.fasta");
         CodonJob::dispatch($data, $request->input(), $methods);
-        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(3));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
