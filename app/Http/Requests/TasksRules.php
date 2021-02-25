@@ -73,7 +73,7 @@ class TasksRules extends FormRequest
     public static function codonRules()
     {
         return [
-            'file' => ["required", "file", "mimes:txt", new FastaFormatRule],
+            'file' => ["required", "file", "mimes:txt"],
             'codon' => 'required',
         ];
     }
