@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://159.203.14.63'],
+    'allowed_origins' => ['http://159.203.14.63', '*'],
 
     'allowed_origins_patterns' => [],
 
