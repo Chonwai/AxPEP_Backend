@@ -166,6 +166,12 @@ class TasksServices implements BaseServicesInterface
         return $data;
     }
 
+    public function failedTask($taskID)
+    {
+        $data = DAOSimpleFactory::createTasksDAO()->failed($taskID);
+        return $data;
+    }
+
     public function countDistinctIpNDays($request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->countDistinctIpNDays($request);
