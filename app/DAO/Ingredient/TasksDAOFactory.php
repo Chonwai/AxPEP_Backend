@@ -73,7 +73,7 @@ class TasksDAOFactory implements BaseDAOFactory
 
     public function countDistinctIpNDays($request)
     {
-        $tasks = DB::select('SELECT DISTINCT ip FROM tasks WHERE created_at >= ?', [Carbon::now()->subDays($request->days_ago + 1)]);
+        $tasks = DB::table('tasks')->select(DB::raw('DISTINCT ip'))->where('created_at', '>=', Carbon::now()->subDays($request->days_ago + 1))->get();
 
         $data = GenerateUtils::generateLocationsListByIps($tasks);
 
