@@ -19,20 +19,19 @@ return [
      * You can enable CORS for 1 or multiple paths.
      * Example: ['api/*']
      */
-    'paths' => ['api/*'],
+    'paths' => ['api/*', 'api/v1', '*'],
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['POST', 'GET', 'DELETE', 'PUT', '*'],
 
-    'allowed_origins' => ['*', 'http://159.203.14.63/', 'http://localhost/', 'http://159.203.14.63:80/'],
+    'allowed_origins' => ['*', 'http://159.203.14.63', 'http://localhost', 'http://159.203.14.63:80', 'http://localhost:8000'],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => ['Google'],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => ['X-Custom-Header', 'Upgrade-Insecure-Requests', '*'],
 
     'exposed_headers' => false,
 
     'max_age' => false,
 
     'supports_credentials' => false,
-
 ];
