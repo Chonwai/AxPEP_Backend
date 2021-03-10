@@ -44,14 +44,14 @@ class TasksServices implements BaseServicesInterface
     public function dataValidation($request, $method)
     {
         switch ($method) {
-            case 'createNewTaskByFile':
-                $validator = Validator::make($request->all(), TasksRules::fileRules());
-                break;
             case 'responseSpecifyTaskByEmail':
                 $validator = Validator::make($request->all(), TasksRules::emailRules());
                 break;
             case 'createNewTaskByTextarea':
                 $validator = Validator::make($request->all(), TasksRules::textareaRules());
+                break;
+            case 'createNewTaskByFile':
+                $validator = Validator::make($request->all(), TasksRules::fileRules());
                 break;
             case 'createNewTaskByFileAndCodon':
                 $validator = Validator::make($request->all(), TasksRules::codonRules());

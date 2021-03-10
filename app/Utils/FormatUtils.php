@@ -14,7 +14,7 @@ class FormatUtils
         foreach (preg_split("/((\r?\n)|(\r\n?))/", $data) as $line) {
             $counter++;
             if ($counter % 2 == 1) {
-                if ($line[0] != '>') {
+                if ($line[0] != '>' || $line[0] == null) {
                     $status = 'FASTA Header is error!';
                     break;
                 }
