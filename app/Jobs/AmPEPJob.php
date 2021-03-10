@@ -62,7 +62,7 @@ class AmPEPJob implements ShouldQueue
 
     public function failed(\Exception $e = null)
     {
-        echo ("Fuck! The Job has failed!");
+        echo("Fail Status:" . $e);
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }
