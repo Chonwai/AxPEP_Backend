@@ -5,8 +5,7 @@ namespace App\Services;
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
 use App\Imports\AmPEPResultImport;
-use App\Jobs\AmPEPJob;
-use App\Jobs\CodonJob;
+use App\Jobs\AcPEPJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
 use App\Utils\ResponseUtils;
@@ -19,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
-class TasksServices implements BaseServicesInterface
+class AcPEPServices implements BaseServicesInterface
 {
     private static $_instance = null;
 
@@ -52,9 +51,6 @@ class TasksServices implements BaseServicesInterface
                 break;
             case 'createNewTaskByFile':
                 $validator = Validator::make($request->all(), TasksRules::fileRules());
-                break;
-            case 'createNewTaskByFileAndCodon':
-                $validator = Validator::make($request->all(), TasksRules::codonRules());
                 break;
             case 'downloadSpecifyClassification':
                 $validator = Validator::make($request->all(), TasksRules::rules());
@@ -107,9 +103,9 @@ class TasksServices implements BaseServicesInterface
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
-        FileUtils::createResultFile("Tasks/$data->id/", $methods);
-        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AmPEP');
-        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+        FileUtils::createAcPEPResultFile("Tasks/$data->id/", $methods);
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AcPEP');
+        AcPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -119,41 +115,23 @@ class TasksServices implements BaseServicesInterface
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
         Storage::disk('local')->put("Tasks/$data->id/input.fasta", $request->fasta);
-        FileUtils::createResultFile("Tasks/$data->id/", $methods);
-        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AmPEP');
-        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
-        return ResFactoryUtils::getServicesRes($data, 'fail');
-    }
-
-    public function createNewTaskByFileAndCodon(Request $request)
-    {
-        $data = DAOSimpleFactory::createTasksDAO()->insert($request);
-        $methods = $this->insertTasksMethods($request, $data);
-        TaskUtils::createTaskFolder($data);
-        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), "codon.fasta");
-        CodonJob::dispatch($data, $request->codon, $methods);
-        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(3));
+        FileUtils::createAcPEPResultFile("Tasks/$data->id/", $methods);
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AcPEP');
+        AcPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function insertTasksMethods($request, $data)
     {
         $methods = [];
-        if ($request->ampep == true) {
-            RequestUtils::addSpecificInput(['method' => 'ampep', 'task_id' => $data->id]);
-            $method = TasksMethodsServices::getInstance()->insert($request);
-            array_push($methods, $method->method);
-        }
-        if ($request->deepampep30 == true) {
-            RequestUtils::addSpecificInput(['method' => 'deepampep30', 'task_id' => $data->id]);
-            $method = TasksMethodsServices::getInstance()->insert($request);
-            array_push($methods, $method->method);
-
-        }
-        if ($request->rfampep30 == true) {
-            RequestUtils::addSpecificInput(['method' => 'rfampep30', 'task_id' => $data->id]);
-            $method = TasksMethodsServices::getInstance()->insert($request);
-            array_push($methods, $method->method);
+        foreach ($request->methods as $key => $value) {
+            if ($value == true) {
+                RequestUtils::addSpecificInput(['method' => $key, 'task_id' => $data->id]);
+                $method = TasksMethodsServices::getInstance()->insert($request);
+                array_push($methods, $method->method);
+            } else {
+                continue;
+            }
         }
         return $methods;
     }
@@ -162,7 +140,7 @@ class TasksServices implements BaseServicesInterface
     {
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
         $methods = DAOSimpleFactory::createTasksMethodsDAO()->getSpecifyByTaskID($taskID);
-        FileUtils::writeAmPEPResultFile($taskID, $methods);
+        FileUtils::writeAcPEPResultFile($taskID, $methods);
         return $data;
     }
 
@@ -170,17 +148,5 @@ class TasksServices implements BaseServicesInterface
     {
         $data = DAOSimpleFactory::createTasksDAO()->failed($taskID);
         return $data;
-    }
-
-    public function countDistinctIpNDays($request)
-    {
-        $data = DAOSimpleFactory::createTasksDAO()->countDistinctIpNDays($request);
-        return ResFactoryUtils::getServicesRes($data, 'fail');
-    }
-
-    public function countTasksNDays($request)
-    {
-        $data = DAOSimpleFactory::createTasksDAO()->countTasksNDays($request);
-        return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 }

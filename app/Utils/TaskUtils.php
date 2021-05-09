@@ -49,10 +49,10 @@ class TaskUtils
         }
     }
 
-    public static function runAcPEPTask($task)
+    public static function runAcPEPTask($task, $method)
     {
-        $process = new Process(['Rscript', '../AcPEP/pred.R', "storage/app/Tasks/$task->id/input.fasta", "storage/app/Tasks/$task->id/acpep.out"]);
-        $process->setTimeout(3600);
+        $process = new Process(['Python3', '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
+        $process->setTimeout(7200);
         $process->run();
 
         // executes after the command finishes
@@ -76,6 +76,17 @@ class TaskUtils
     public static function renameCodonFasta($task)
     {
         $process = new Process(['mv', "storage/app/Tasks/$task->id/codon_orf.fasta", "storage/app/Tasks/$task->id/input.fasta"]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+    }
+
+    public static function renameAcPEPResultFile($task, $method) {
+        $process = new Process(['mv', "storage/app/Tasks/$task->id/$method.out.result_input.fasta.csv", "storage/app/Tasks/$task->id/$method.out"]);
         $process->setTimeout(3600);
         $process->run();
 

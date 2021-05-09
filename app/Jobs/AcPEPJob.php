@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Services\AcPEPServices;
 use App\Services\TasksServices;
-use App\Utils\FileUtils;
 use App\Utils\TaskUtils;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,14 +11,12 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class CodonJob implements ShouldQueue
+class AcPEPJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $task;
-    private $codonCode;
-    private $methods;
-    private $taskID;
+    private $request;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -32,12 +30,10 @@ class CodonJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($task, $codonCode, $methods)
+    public function __construct($task, $request)
     {
         $this->task = $task;
-        $this->codonCode = $codonCode;
-        $this->methods = $methods;
-        $this->taskID = $task->id;
+        $this->request = $request;
     }
 
     /**
@@ -47,16 +43,23 @@ class CodonJob implements ShouldQueue
      */
     public function handle()
     {
-        echo ('Running ' . $this->task->id . " Codon Task!\n");
-        TaskUtils::runCodonTask($this->task, $this->codonCode);
-        TaskUtils::renameCodonFasta($this->task);
-        FileUtils::createResultFile("Tasks/$this->taskID/", $this->methods);
-        FileUtils::insertSequencesAndHeaderOnResult("storage/app/Tasks/$this->taskID/", $this->methods, 'AmPEP');
+        foreach ($this->request['methods'] as $key => $value) {
+            if ($value == true) {
+                echo ('Running ' . $this->task->id . " AcPEP's $key Task!\n");
+                TaskUtils::runAcPEPTask($this->task, $key);
+                TaskUtils::renameAcPEPResultFile($this->task, $key);
+            } else {
+                continue;
+            }
+        }
+
+        AcPEPServices::getInstance()->finishedTask($this->task->id);
     }
 
     public function failed(\Exception $e = null)
     {
-        echo("Fail Status:" . $e);
+        echo ("Fail Status:" . $e);
+        echo (json_encode($e));
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }

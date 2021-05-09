@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Apis\AcPEPController;
 use App\Http\Controllers\Apis\CodonController;
 use App\Http\Controllers\Apis\TaskController;
 use Illuminate\Http\Request;
@@ -70,4 +71,20 @@ Route::prefix('/v1/axpep')->group(function () {
      */
     // Get All Codons API
     Route::get('/codons/all', [CodonController::class, 'responseAll']);
+});
+
+Route::prefix('/v1/acpep')->group(function () {
+    /**
+     * Tasks API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Response Specify Task By ID
+    Route::get('/tasks/{id}', [TaskController::class, 'responseSpecify']);
+
+    // Create Task by File
+    Route::post('/tasks/file', [AcPEPController::class, 'createNewTaskByFile']);
+
+    // Create Task by Textarea
+    Route::post('/tasks/textarea', [AcPEPController::class, 'createNewTaskByTextarea']);
 });
