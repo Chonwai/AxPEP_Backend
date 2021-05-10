@@ -31,12 +31,14 @@ class TasksDAOFactory implements BaseDAOFactory
 
     public function insert($request)
     {
+        echo ($request->application);
         $data = Tasks::create([
             'id' => Str::uuid()->toString(),
             'email' => $request->email,
             'action' => 'running',
             'source' => $request->source,
             'description' => $request->description,
+            'application' => $request->application,
             'ip' => $request->ip(),
         ]);
         return $data;
@@ -80,11 +82,12 @@ class TasksDAOFactory implements BaseDAOFactory
         return $data;
     }
 
-    public function countTasksNDays($request) {
+    public function countTasksNDays($request)
+    {
         $tasks = Tasks::select(DB::raw('DATE(created_at) as date'), DB::raw('count(created_at) as total'))->where('created_at', '>=', Carbon::now()->subDays($request->days_ago + 1)->toDateString())->groupBy(DB::raw('DATE(created_at)'))->get();
-        
+
         $data = GenerateUtils::generateCountTasksNumber($tasks, $request->days_ago);
-        
+
         return $data;
     }
 }

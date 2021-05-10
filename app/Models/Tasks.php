@@ -22,6 +22,7 @@ class Tasks extends Model
         'action',
         'source',
         'description',
+        'application',
         'ip',
     ];
 
