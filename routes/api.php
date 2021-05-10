@@ -87,4 +87,12 @@ Route::prefix('/v1/acpep')->group(function () {
 
     // Create Task by Textarea
     Route::post('/tasks/textarea', [AcPEPController::class, 'createNewTaskByTextarea']);
+
+    /**
+     * Searching API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Searching Task By Email
+    Route::get('/emails/{email}/tasks', [AcPEPController::class, 'responseSpecifyTaskByEmail']);
 });

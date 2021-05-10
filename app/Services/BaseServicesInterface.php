@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Request;
+
 interface BaseServicesInterface
 {
     public function dataValidation($request, $method);
-    // public function responseAll($operation);
-    // public function responseSpecify($request, $operation);
-    // public function insert($request, $operation);
-    // public function update($request, $operation);
-    // public function delete($request, $operation);
+    // public function responseAll();
+    // public function responseSpecify(Request $request);
+    // public function insert(Request $request);
 }

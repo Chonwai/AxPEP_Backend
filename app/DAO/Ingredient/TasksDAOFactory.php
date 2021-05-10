@@ -23,15 +23,14 @@ class TasksDAOFactory implements BaseDAOFactory
         return $data;
     }
 
-    public function getSpecifyTaskByEmail($request)
+    public function getSpecifyTaskByEmail($request, $application)
     {
-        $data = Tasks::where('email', $request->email)->orderBy('updated_at', 'DESC')->paginate(20);
+        $data = Tasks::where('email', $request->email)->where('application', $application)->orderBy('updated_at', 'DESC')->paginate(20);
         return $data;
     }
 
     public function insert($request)
     {
-        echo ($request->application);
         $data = Tasks::create([
             'id' => Str::uuid()->toString(),
             'email' => $request->email,
