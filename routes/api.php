@@ -64,6 +64,9 @@ Route::prefix('/v1/axpep')->group(function () {
     // Count N Days Task API
     Route::get('/analysis/count/tasks', [TaskController::class, 'countTasksNDays']);
 
+    // Count Each Methods API
+    Route::get('/analysis/count/method', [TaskController::class, 'countEachMethods']);
+
     /**
      * Codons API ------------------------------------------------------------
      *
@@ -80,7 +83,7 @@ Route::prefix('/v1/acpep')->group(function () {
      * @api
      */
     // Response Specify Task By ID
-    Route::get('/tasks/{id}', [TaskController::class, 'responseSpecify']);
+    Route::get('/tasks/{id}', [AcPEPController::class, 'responseSpecify']);
 
     // Create Task by File
     Route::post('/tasks/file', [AcPEPController::class, 'createNewTaskByFile']);

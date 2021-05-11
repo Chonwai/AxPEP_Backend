@@ -101,4 +101,9 @@ class TaskController extends Controller
         $data = TasksServices::getInstance()->countTasksNDays($request);
         return $data;
     }
+
+    public function countEachMethods(Request $request) {
+        $data = TasksServices::getInstance()->countEachMethods($request);
+        return $data;
+    }
 }

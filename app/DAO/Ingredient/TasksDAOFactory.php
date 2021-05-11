@@ -75,18 +75,20 @@ class TasksDAOFactory implements BaseDAOFactory
     public function countDistinctIpNDays($request)
     {
         $tasks = DB::table('tasks')->select(DB::raw('DISTINCT ip'))->where('created_at', '>=', Carbon::now()->subDays($request->days_ago + 1))->get();
-
         $data = GenerateUtils::generateLocationsListByIps($tasks);
-
         return $data;
     }
 
     public function countTasksNDays($request)
     {
         $tasks = Tasks::select(DB::raw('DATE(created_at) as date'), DB::raw('count(created_at) as total'))->where('created_at', '>=', Carbon::now()->subDays($request->days_ago + 1)->toDateString())->groupBy(DB::raw('DATE(created_at)'))->get();
-
         $data = GenerateUtils::generateCountTasksNumber($tasks, $request->days_ago);
+        return $data;
+    }
 
+    public function countEachMethods($request)
+    {
+        $data = DB::table('tasks')->join('tasks_methods', 'tasks.id', '=', 'tasks_methods.task_id')->select('tasks_methods.method', DB::raw('count(tasks_methods.method) as total'))->where('tasks.application', $request->application)->groupBy('tasks_methods.method')->get();
         return $data;
     }
 }

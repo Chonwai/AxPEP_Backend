@@ -25,7 +25,7 @@ class FileUtils
 
     public static function insertSequencesAndHeaderOnResult($path, $methods, $function = 'AmPEP')
     {
-        [$fInput, $fClassification, $fScore, $methodArray] = self::prepareSequencesAndHeaderFile($path, $methods, $function = 'AmPEP');
+        [$fInput, $fClassification, $fScore, $methodArray] = self::prepareSequencesAndHeaderFile($path, $methods, $function);
         self::prepareSequencesAndHeaderContent($fInput, $fClassification, $fScore, $methodArray, $function);
     }
 
@@ -178,10 +178,10 @@ class FileUtils
                 $sequence = ltrim(str_replace("\r\n", '', $sequence));
                 $sequence = ltrim(str_replace("\n", '', $sequence));
                 $sequence = ltrim(str_replace(PHP_EOL, '', $sequence));
-                if ($function == 'AmPEP') {
+                if ($function === 'AmPEP') {
                     fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['number_of_positives' => ''], ['sequence' => $sequence]));
                     fputcsv($fScore, array_merge(['id' => $id], $methodArray, ['product_of_probability' => ''], ['sequence' => $sequence]));
-                } elseif ($function == 'AcPEP') {
+                } elseif ($function === 'AcPEP') {
                     fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['sequence' => $sequence]));
                 }
             }

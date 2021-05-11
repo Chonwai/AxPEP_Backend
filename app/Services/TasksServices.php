@@ -183,4 +183,9 @@ class TasksServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->countTasksNDays($request);
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
+
+    public function countEachMethods($request) {
+        $data = DAOSimpleFactory::createTasksDAO()->countEachMethods($request);
+        return ResFactoryUtils::getServicesRes($data, 'fail');
+    }
 }
