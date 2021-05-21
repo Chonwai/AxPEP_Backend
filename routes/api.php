@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Apis\AcPEPController;
+use App\Http\Controllers\Apis\AmPEPController;
 use App\Http\Controllers\Apis\CodonController;
 use App\Http\Controllers\Apis\TaskController;
 use Illuminate\Http\Request;
@@ -27,9 +28,6 @@ Route::prefix('/v1/axpep')->group(function () {
      *
      * @api
      */
-    // Response Specify Task By ID
-    Route::get('/tasks/{id}', [TaskController::class, 'responseSpecify']);
-
     // Create Task by File
     Route::post('/tasks/file', [TaskController::class, 'createNewTaskByFile']);
 
@@ -52,6 +50,9 @@ Route::prefix('/v1/axpep')->group(function () {
      */
     // Searching Task By Email
     Route::get('/emails/{email}/tasks', [TaskController::class, 'responseSpecifyTaskByEmail']);
+
+    // Response Specify Task By ID
+    Route::get('/tasks/{id}', [TaskController::class, 'responseSpecify']);
 
     /**
      * Analysis API ------------------------------------------------------------
@@ -76,26 +77,28 @@ Route::prefix('/v1/axpep')->group(function () {
     Route::get('/codons/all', [CodonController::class, 'responseAll']);
 });
 
+Route::prefix('/v1/ampep')->group(function () {
+    /**
+     * Tasks API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Create Task by File
+    Route::post('/tasks/file', [AmPEPController::class, 'createNewTaskByFile']);
+
+    // Create Task by Textarea
+    Route::post('/tasks/textarea', [AmPEPController::class, 'createNewTaskByTextarea']);
+});
+
 Route::prefix('/v1/acpep')->group(function () {
     /**
      * Tasks API ------------------------------------------------------------
      *
      * @api
      */
-    // Response Specify Task By ID
-    Route::get('/tasks/{id}', [AcPEPController::class, 'responseSpecify']);
-
     // Create Task by File
     Route::post('/tasks/file', [AcPEPController::class, 'createNewTaskByFile']);
 
     // Create Task by Textarea
     Route::post('/tasks/textarea', [AcPEPController::class, 'createNewTaskByTextarea']);
-
-    /**
-     * Searching API ------------------------------------------------------------
-     *
-     * @api
-     */
-    // Searching Task By Email
-    Route::get('/emails/{email}/tasks', [AcPEPController::class, 'responseSpecifyTaskByEmail']);
 });

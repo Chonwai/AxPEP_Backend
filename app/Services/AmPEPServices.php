@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
-class AcPEPServices implements BaseServicesInterface
+class AmPEPServices implements BaseServicesInterface
 {
     private static $_instance = null;
 
@@ -75,12 +75,13 @@ class AcPEPServices implements BaseServicesInterface
     // {
     //     $data = DAOSimpleFactory::createTasksDAO()->getSpecify($request);
     //     $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+    //     $data[0]->scores = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/score.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
     //     return ResFactoryUtils::getServicesRes($data, 'fail');
     // }
 
     // public function responseSpecifyTaskByEmail(Request $request)
     // {
-    //     $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request, 'acpep');
+    //     $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request, $application);
     //     return ResFactoryUtils::getServicesRes($data, 'fail');
     // }
 

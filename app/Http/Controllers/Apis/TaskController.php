@@ -23,7 +23,7 @@ class TaskController extends Controller
         $status = TasksServices::getInstance()->dataValidation($request, 'responseSpecifyTaskByEmail');
 
         if ($status === true) {
-            $res = TasksServices::getInstance()->responseSpecifyTaskByEmail($request, 'ampep');
+            $res = TasksServices::getInstance()->responseSpecifyTaskByEmail($request);
             return $res;
         } else {
             return response()->json($status, 200);

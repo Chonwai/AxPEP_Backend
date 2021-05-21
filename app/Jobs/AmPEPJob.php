@@ -42,19 +42,23 @@ class AmPEPJob implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->request['ampep'] == true) {
-            echo ('Running ' . $this->task->id . " AmPEP Task!\n");
-            TaskUtils::runAmPEPTask($this->task);
-        }
-
-        if ($this->request['deepampep30'] == true) {
-            echo ('Running ' . $this->task->id . " DeepAmPEP30 Task!\n");
-            TaskUtils::runDeepAmPEP30Task($this->task);
-        }
-
-        if ($this->request['rfampep30'] == true) {
-            echo ('Running ' . $this->task->id . " RFAmPEP30 Task!\n");
-            TaskUtils::runRFAmPEP30Task($this->task);
+        foreach ($this->request['methods'] as $key => $value) {
+            if ($value == true) {
+                if ($key === 'ampep') {
+                    echo ('Running ' . $this->task->id . " AmPEP Task!\n");
+                    TaskUtils::runAmPEPTask($this->task);
+                }
+                if ($key === 'deepampep30') {
+                    echo ('Running ' . $this->task->id . " DeepAmPEP30 Task!\n");
+                    TaskUtils::runDeepAmPEP30Task($this->task);
+                }
+                if ($key === 'rfampep30') {
+                    echo ('Running ' . $this->task->id . " RFAmPEP30 Task!\n");
+                    TaskUtils::runRFAmPEP30Task($this->task);
+                }
+            } else {
+                continue;
+            }
         }
 
         TasksServices::getInstance()->finishedTask($this->task->id);
@@ -62,7 +66,7 @@ class AmPEPJob implements ShouldQueue
 
     public function failed(\Exception $e = null)
     {
-        echo("Fail Status:" . $e);
+        echo ("Fail Status:" . $e);
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }

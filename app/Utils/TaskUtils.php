@@ -52,7 +52,7 @@ class TaskUtils
     public static function runAcPEPTask($task, $method)
     {
         $process = new Process(['python3', '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
-        $process->setTimeout(7200);
+        $process->setTimeout(3600);
         $process->run();
 
         // executes after the command finishes

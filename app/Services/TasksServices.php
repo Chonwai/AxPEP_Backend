@@ -78,14 +78,18 @@ class TasksServices implements BaseServicesInterface
     public function responseSpecify(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->getSpecify($request);
-        $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
-        $data[0]->scores = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/score.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+        if ($request->application == 'ampep') {
+            $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+            $data[0]->scores = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/score.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+        } elseif ($request->application == 'acpep') {
+            $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+        }
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
-    public function responseSpecifyTaskByEmail(Request $request, $application='ampep')
+    public function responseSpecifyTaskByEmail(Request $request)
     {
-        $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request, $application);
+        $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request);
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -184,7 +188,8 @@ class TasksServices implements BaseServicesInterface
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
-    public function countEachMethods($request) {
+    public function countEachMethods($request)
+    {
         $data = DAOSimpleFactory::createTasksDAO()->countEachMethods($request);
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
