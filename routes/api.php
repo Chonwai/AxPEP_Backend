@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Apis\AcPEPController;
 use App\Http\Controllers\Apis\AmPEPController;
+use App\Http\Controllers\Apis\BESToxController;
 use App\Http\Controllers\Apis\CodonController;
 use App\Http\Controllers\Apis\TaskController;
 use Illuminate\Http\Request;
@@ -101,4 +102,17 @@ Route::prefix('/v1/acpep')->group(function () {
 
     // Create Task by Textarea
     Route::post('/tasks/textarea', [AcPEPController::class, 'createNewTaskByTextarea']);
+});
+
+Route::prefix('/v1/bestox')->group(function () {
+    /**
+     * Tasks API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Create Task by File
+    Route::post('/tasks/file', [BESToxController::class, 'createNewTaskByFile']);
+
+    // Create Task by Textarea
+    Route::post('/tasks/textarea', [BESToxController::class, 'createNewTaskByTextarea']);
 });

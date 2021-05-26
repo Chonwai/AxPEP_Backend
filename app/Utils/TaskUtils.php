@@ -73,6 +73,18 @@ class TaskUtils
         }
     }
 
+    public static function runBESToxTask($task, $codonCode = "1")
+    {
+        $process = new Process(['python3', "../BESTox/model.py", "storage/app/Tasks/$task->id/input.smi", "storage/app/Tasks/$task->id/result.out"]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+    }
+
     public static function renameCodonFasta($task)
     {
         $process = new Process(['mv', "storage/app/Tasks/$task->id/codon_orf.fasta", "storage/app/Tasks/$task->id/input.fasta"]);
