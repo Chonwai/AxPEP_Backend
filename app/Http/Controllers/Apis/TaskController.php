@@ -56,6 +56,19 @@ class TaskController extends Controller
         }
     }
 
+    public function downloadSpecifyResult(Request $request) {
+        RequestUtils::addTaskID($request);
+
+        $status = TasksServices::getInstance()->dataValidation($request, 'downloadSpecifyResult');
+
+        if ($status === true) {
+            $res = TasksServices::getInstance()->downloadSpecifyResult($request);
+            return $res;
+        } else {
+            return response()->json($status, 200);
+        }
+    }
+
     public function createNewTaskByFile(Request $request)
     {
         $status = TasksServices::getInstance()->dataValidation($request, 'createNewTaskByFile');

@@ -41,8 +41,11 @@ Route::prefix('/v1/axpep')->group(function () {
     // Download the Classification Result File
     Route::get('/tasks/{id}/classification/download', [TaskController::class, 'downloadSpecifyClassification']);
 
-    // Download the Classification Result File
+    // Download the Score Result File
     Route::get('/tasks/{id}/score/download', [TaskController::class, 'downloadSpecifyPredictionScore']);
+
+    // Download the Result File
+    Route::get('/tasks/{id}/result/download', [TaskController::class, 'downloadSpecifyResult']);
 
     /**
      * Searching API ------------------------------------------------------------

@@ -72,18 +72,6 @@ class BESToxServices implements BaseServicesInterface
         }
     }
 
-    public function downloadSpecifyClassification(Request $request)
-    {
-        $file = Storage::download("Tasks/$request->id/classification.csv");
-        return $file;
-    }
-
-    public function downloadSpecifyPredictionScore(Request $request)
-    {
-        $file = Storage::download("Tasks/$request->id/score.csv");
-        return $file;
-    }
-
     public function createNewTaskByFile(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);

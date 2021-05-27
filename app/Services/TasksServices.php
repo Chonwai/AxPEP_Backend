@@ -62,6 +62,9 @@ class TasksServices implements BaseServicesInterface
             case 'downloadSpecifyPredictionScore':
                 $validator = Validator::make($request->all(), TasksRules::rules());
                 break;
+            case 'downloadSpecifyResult':
+                $validator = Validator::make($request->all(), TasksRules::rules());
+                break;
             default:
                 # code...
                 break;
@@ -77,7 +80,6 @@ class TasksServices implements BaseServicesInterface
 
     public function responseSpecify(Request $request)
     {
-        echo(json_encode($request->input()));
         $data = DAOSimpleFactory::createTasksDAO()->getSpecify($request);
         if ($request->application == 'ampep') {
             $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
@@ -105,6 +107,12 @@ class TasksServices implements BaseServicesInterface
     public function downloadSpecifyPredictionScore(Request $request)
     {
         $file = Storage::download("Tasks/$request->id/score.csv");
+        return $file;
+    }
+
+    public function downloadSpecifyResult(Request $request)
+    {
+        $file = Storage::download("Tasks/$request->id/result.csv");
         return $file;
     }
 
