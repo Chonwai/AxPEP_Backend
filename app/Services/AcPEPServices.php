@@ -71,19 +71,6 @@ class AcPEPServices implements BaseServicesInterface
         }
     }
 
-    // public function responseSpecify(Request $request)
-    // {
-    //     $data = DAOSimpleFactory::createTasksDAO()->getSpecify($request);
-    //     $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
-    //     return ResFactoryUtils::getServicesRes($data, 'fail');
-    // }
-
-    // public function responseSpecifyTaskByEmail(Request $request)
-    // {
-    //     $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request, 'acpep');
-    //     return ResFactoryUtils::getServicesRes($data, 'fail');
-    // }
-
     public function downloadSpecifyClassification(Request $request)
     {
         $file = Storage::download("Tasks/$request->id/classification.csv");

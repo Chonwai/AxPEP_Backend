@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Services\BESToxServices;
 use App\Services\TasksServices;
 use App\Utils\TaskUtils;
 use Illuminate\Bus\Queueable;
@@ -43,11 +44,12 @@ class BESToxJob implements ShouldQueue
     {
         echo ('Running ' . $this->task->id . " BESTox Task!\n");
         TaskUtils::runBESToxTask($this->task);
+        BESToxServices::getInstance()->finishedTask($this->task->id);
     }
 
     public function failed(\Exception $e = null)
     {
         echo ("Fail Status:" . $e);
-        TasksServices::getInstance()->failedTask($this->task->id);
+        BESToxServices::getInstance()->failedTask($this->task->id);
     }
 }

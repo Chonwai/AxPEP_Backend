@@ -122,8 +122,6 @@ class BESToxServices implements BaseServicesInterface
     public function finishedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
-        $methods = DAOSimpleFactory::createTasksMethodsDAO()->getSpecifyByTaskID($taskID);
-        FileUtils::writeAcPEPResultFile($taskID, $methods);
         return $data;
     }
 
