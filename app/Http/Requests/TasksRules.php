@@ -58,6 +58,30 @@ class TasksRules extends FormRequest
      *
      * @return array
      */
+    public static function textareaSMIRules()
+    {
+        return [
+            'smi' => ['required'],
+        ];
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public static function fileSMIRules()
+    {
+        return [
+            'file' => ["required", "file", "mimes:txt"],
+        ];
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
     public static function emailRules()
     {
         return [

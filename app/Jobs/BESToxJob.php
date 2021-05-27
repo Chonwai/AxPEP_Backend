@@ -16,7 +16,6 @@ class BESToxJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $task;
-    private $request;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -30,10 +29,9 @@ class BESToxJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($task, $request)
+    public function __construct($task)
     {
         $this->task = $task;
-        $this->request = $request;
     }
 
     /**
@@ -44,7 +42,7 @@ class BESToxJob implements ShouldQueue
     public function handle()
     {
         echo ('Running ' . $this->task->id . " BESTox Task!\n");
-        TaskUtils::runCodonTask($this->task, $this->codonCode);
+        TaskUtils::runBESToxTask($this->task);
     }
 
     public function failed(\Exception $e = null)

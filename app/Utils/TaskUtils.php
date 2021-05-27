@@ -73,9 +73,9 @@ class TaskUtils
         }
     }
 
-    public static function runBESToxTask($task, $codonCode = "1")
+    public static function runBESToxTask($task)
     {
-        $process = new Process(['python3', "../BESTox/model.py", "storage/app/Tasks/$task->id/input.smi", "storage/app/Tasks/$task->id/result.out"]);
+        $process = new Process(['python3', "../BESTox/main.py", "storage/app/Tasks/$task->id/input.smi", "storage/app/Tasks/$task->id/result.csv"]);
         $process->setTimeout(3600);
         $process->run();
 

@@ -154,6 +154,9 @@ class FileUtils
             case 'AcPEP':
                 $fScore = null;
                 break;
+            case 'BESTox':
+                $fScore = null;
+                break;
             default:
                 $fScore = fopen($path . 'score.csv', 'a+');
                 break;
