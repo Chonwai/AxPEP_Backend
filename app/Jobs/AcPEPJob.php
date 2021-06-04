@@ -52,6 +52,9 @@ class AcPEPJob implements ShouldQueue
                 continue;
             }
         }
+        TaskUtils::copyAcPEPInputFile($this->task);
+        TaskUtils::runAcPEPClassificationTask($this->task);
+        TaskUtils::renameAcPEPClassificationResultFile($this->task);
 
         AcPEPServices::getInstance()->finishedTask($this->task->id);
     }

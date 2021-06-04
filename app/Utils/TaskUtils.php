@@ -51,7 +51,19 @@ class TaskUtils
 
     public static function runAcPEPTask($task, $method)
     {
-        $process = new Process(['python3', '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
+        $process = new Process(['python3.7', '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+    }
+
+    public static function runAcPEPClassificationTask($task)
+    {
+        $process = new Process(['python3.7', '../xDeep-AcPEP-Classification/main.py', "../xDeep-AcPEP-Classification/$task->id.fasta"]);
         $process->setTimeout(3600);
         $process->run();
 
@@ -97,8 +109,33 @@ class TaskUtils
         }
     }
 
-    public static function renameAcPEPResultFile($task, $method) {
+    public static function copyAcPEPInputFile($task)
+    {
+        $process = new Process(['cp', "storage/app/Tasks/$task->id/input.fasta", "../xDeep-AcPEP-Classification/$task->id.fasta"]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+    }
+
+    public static function renameAcPEPResultFile($task, $method)
+    {
         $process = new Process(['mv', "storage/app/Tasks/$task->id/$method.out.result_input.fasta.csv", "storage/app/Tasks/$task->id/$method.out"]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+    }
+
+    public static function renameAcPEPClassificationResultFile($task)
+    {
+        $process = new Process(['mv', "../xDeep-AcPEP-Classification/$task->id.csv", "storage/app/Tasks/$task->id/xDeep-AcPEP-Classification.csv"]);
         $process->setTimeout(3600);
         $process->run();
 

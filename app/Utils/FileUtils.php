@@ -21,6 +21,7 @@ class FileUtils
     {
         $methodString = self::prepareMethodString($methods);
         Storage::put($path . 'classification.csv', 'id,' . $methodString . "sequence\n");
+        Storage::put($path . 'score.csv', "id,classification,score,sequence\n");
     }
 
     public static function insertSequencesAndHeaderOnResult($path, $methods, $function = 'AmPEP')
@@ -58,13 +59,16 @@ class FileUtils
 
     public static function writeAcPEPResultFile($id, $methods)
     {
-        $classifications = self::loadClassificationsFile($id, $methods);
+        [$classifications, $scores] = self::loadResultFile($id, $methods);
 
         foreach ($methods as $key => $value) {
-            $classifications = self::matchingAcPEP($id, $value->method, $classifications);
+            $classifications = self::matchingAcPEPClassification($id, $value->method, $classifications);
         }
 
+        $scores = self::matchingAcPEPScore($id, $scores);
+
         Excel::store(new AmPEPResultExport($classifications[0]), "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
+        Excel::store(new AmPEPResultExport($scores[0]), "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
     }
 
     public static function matchingAmPEP($id, $method, $classifications, $scores)
@@ -89,7 +93,7 @@ class FileUtils
         return [$classifications, $scores];
     }
 
-    public static function matchingAcPEP($id, $method, $classifications)
+    public static function matchingAcPEPClassification($id, $method, $classifications)
     {
         $fResult = Excel::toArray(new OutImport, "Tasks/$id/$method.out", null, \Maatwebsite\Excel\Excel::CSV);
         array_shift($fResult[0]);
@@ -102,6 +106,21 @@ class FileUtils
             }, $classifications[0]);
         }
         return $classifications;
+    }
+
+    public static function matchingAcPEPScore($id, $scores)
+    {
+        $fResult = Excel::toArray(new OutImport, "Tasks/$id/xDeep-AcPEP-Classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
+        foreach ($fResult[0] as $key => $value) {
+            $scores[0] = array_map(function ($val) use ($value) {
+                if ($val['id'] === $value[0]) {
+                    $val["classification"] = $value[1];
+                    $val["score"] = $value[2];
+                }
+                return $val;
+            }, $scores[0]);
+        }
+        return $scores;
     }
 
     public static function calculateResultFile($classifications, $scores, $methods)
@@ -152,7 +171,7 @@ class FileUtils
                 $fScore = fopen($path . 'score.csv', 'a+');
                 break;
             case 'AcPEP':
-                $fScore = null;
+                $fScore = fopen($path . 'score.csv', 'a+');
                 break;
             case 'BESTox':
                 $fScore = null;
@@ -186,6 +205,7 @@ class FileUtils
                     fputcsv($fScore, array_merge(['id' => $id], $methodArray, ['product_of_probability' => ''], ['sequence' => $sequence]));
                 } elseif ($function === 'AcPEP') {
                     fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['sequence' => $sequence]));
+                    fputcsv($fScore, array_merge(['id' => $id], ['classification' => ''], ['score' => ''], ['sequence' => $sequence]));
                 }
             }
         }

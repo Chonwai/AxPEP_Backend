@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
-use App\Imports\AmPEPResultImport;
 use App\Jobs\AcPEPJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
@@ -16,7 +15,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Facades\Excel;
 
 class AcPEPServices implements BaseServicesInterface
 {

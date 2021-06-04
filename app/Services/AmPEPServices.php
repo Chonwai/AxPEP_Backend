@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
-use App\Imports\AmPEPResultImport;
 use App\Jobs\AcPEPJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
@@ -16,7 +15,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Facades\Excel;
 
 class AmPEPServices implements BaseServicesInterface
 {
@@ -77,7 +75,7 @@ class AmPEPServices implements BaseServicesInterface
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
-        FileUtils::createAcPEPResultFile("Tasks/$data->id/", $methods);
+        FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AcPEP');
         AcPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
@@ -89,7 +87,7 @@ class AmPEPServices implements BaseServicesInterface
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
         Storage::disk('local')->put("Tasks/$data->id/input.fasta", $request->fasta);
-        FileUtils::createAcPEPResultFile("Tasks/$data->id/", $methods);
+        FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AcPEP');
         AcPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
