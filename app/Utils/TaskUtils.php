@@ -51,7 +51,7 @@ class TaskUtils
 
     public static function runAcPEPTask($task, $method)
     {
-        $process = new Process(['python3.7', '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
+        $process = new Process(['python3', '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
         $process->setTimeout(3600);
         $process->run();
 
@@ -63,7 +63,7 @@ class TaskUtils
 
     public static function runAcPEPClassificationTask($task)
     {
-        $process = new Process(['python3.7', '../xDeep-AcPEP-Classification/main.py', "../xDeep-AcPEP-Classification/$task->id.fasta"]);
+        $process = new Process(['python3', '../xDeep-AcPEP-Classification/main.py', "../xDeep-AcPEP-Classification/$task->id.fasta"]);
         $process->setTimeout(3600);
         $process->run();
 
