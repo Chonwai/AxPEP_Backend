@@ -4,7 +4,8 @@ namespace App\Services;
 
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
-use App\Jobs\AcPEPJob;
+use App\Jobs\AmPEPJob;
+use App\Jobs\CodonJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
 use App\Utils\ResponseUtils;
@@ -50,6 +51,9 @@ class AmPEPServices implements BaseServicesInterface
             case 'createNewTaskByFile':
                 $validator = Validator::make($request->all(), TasksRules::fileRules());
                 break;
+            case 'createNewTaskByFileAndCodon':
+                $validator = Validator::make($request->all(), TasksRules::codonRules());
+                break;
             case 'downloadSpecifyClassification':
                 $validator = Validator::make($request->all(), TasksRules::rules());
                 break;
@@ -76,8 +80,8 @@ class AmPEPServices implements BaseServicesInterface
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
-        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AcPEP');
-        AcPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AmPEP');
+        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -88,8 +92,19 @@ class AmPEPServices implements BaseServicesInterface
         TaskUtils::createTaskFolder($data);
         Storage::disk('local')->put("Tasks/$data->id/input.fasta", $request->fasta);
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
-        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AcPEP');
-        AcPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AmPEP');
+        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+        return ResFactoryUtils::getServicesRes($data, 'fail');
+    }
+
+    public function createNewTaskByFileAndCodon(Request $request)
+    {
+        $data = DAOSimpleFactory::createTasksDAO()->insert($request);
+        $methods = $this->insertTasksMethods($request, $data);
+        TaskUtils::createTaskFolder($data);
+        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), "codon.fasta");
+        CodonJob::dispatch($data, $request->codon, $methods);
+        AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(3));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 

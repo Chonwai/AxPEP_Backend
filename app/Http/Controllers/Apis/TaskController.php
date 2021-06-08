@@ -30,7 +30,8 @@ class TaskController extends Controller
         }
     }
 
-    public function downloadSpecifyClassification(Request $request) {
+    public function downloadSpecifyClassification(Request $request)
+    {
         RequestUtils::addTaskID($request);
 
         $status = TasksServices::getInstance()->dataValidation($request, 'downloadSpecifyClassification');
@@ -43,7 +44,8 @@ class TaskController extends Controller
         }
     }
 
-    public function downloadSpecifyPredictionScore(Request $request) {
+    public function downloadSpecifyPredictionScore(Request $request)
+    {
         RequestUtils::addTaskID($request);
 
         $status = TasksServices::getInstance()->dataValidation($request, 'downloadSpecifyPredictionScore');
@@ -56,7 +58,8 @@ class TaskController extends Controller
         }
     }
 
-    public function downloadSpecifyResult(Request $request) {
+    public function downloadSpecifyResult(Request $request)
+    {
         RequestUtils::addTaskID($request);
 
         $status = TasksServices::getInstance()->dataValidation($request, 'downloadSpecifyResult');
@@ -69,53 +72,20 @@ class TaskController extends Controller
         }
     }
 
-    public function createNewTaskByFile(Request $request)
+    public function countDistinctIpNDays(Request $request)
     {
-        $status = TasksServices::getInstance()->dataValidation($request, 'createNewTaskByFile');
-
-        if ($status === true) {
-            $res = TasksServices::getInstance()->createNewTaskByFile($request);
-            return $res;
-        } else {
-            return response()->json($status, 200);
-        }
-    }
-
-    public function createNewTaskByTextarea(Request $request)
-    {
-        $status = TasksServices::getInstance()->dataValidation($request, 'createNewTaskByTextarea');
-
-        if ($status === true) {
-            $res = TasksServices::getInstance()->createNewTaskByTextarea($request);
-            return $res;
-        } else {
-            return response()->json($status, 200);
-        }
-    }
-
-    public function createNewTaskByFileAndCodon(Request $request)
-    {
-        $status = TasksServices::getInstance()->dataValidation($request, 'createNewTaskByFileAndCodon');
-
-        if ($status === true) {
-            $res = TasksServices::getInstance()->createNewTaskByFileAndCodon($request);
-            return $res;
-        } else {
-            return response()->json($status, 200);
-        }
-    }
-
-    public function countDistinctIpNDays(Request $request) {
         $data = TasksServices::getInstance()->countDistinctIpNDays($request);
         return $data;
     }
 
-    public function countTasksNDays(Request $request) {
+    public function countTasksNDays(Request $request)
+    {
         $data = TasksServices::getInstance()->countTasksNDays($request);
         return $data;
     }
 
-    public function countEachMethods(Request $request) {
+    public function countEachMethods(Request $request)
+    {
         $data = TasksServices::getInstance()->countEachMethods($request);
         return $data;
     }

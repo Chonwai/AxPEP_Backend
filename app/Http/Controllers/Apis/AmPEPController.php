@@ -31,4 +31,16 @@ class AmPEPController extends Controller
             return response()->json($status, 200);
         }
     }
+
+    public function createNewTaskByFileAndCodon(Request $request)
+    {
+        $status = AmPEPServices::getInstance()->dataValidation($request, 'createNewTaskByFileAndCodon');
+
+        if ($status === true) {
+            $res = AmPEPServices::getInstance()->createNewTaskByFileAndCodon($request);
+            return $res;
+        } else {
+            return response()->json($status, 200);
+        }
+    }
 }

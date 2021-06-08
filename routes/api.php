@@ -29,15 +29,6 @@ Route::prefix('/v1/axpep')->group(function () {
      *
      * @api
      */
-    // Create Task by File
-    Route::post('/tasks/file', [TaskController::class, 'createNewTaskByFile']);
-
-    // Create Task by Textarea
-    Route::post('/tasks/textarea', [TaskController::class, 'createNewTaskByTextarea']);
-
-    // Create Task by Codon
-    Route::post('/tasks/codon', [TaskController::class, 'createNewTaskByFileAndCodon']);
-
     // Download the Classification Result File
     Route::get('/tasks/{id}/classification/download', [TaskController::class, 'downloadSpecifyClassification']);
 
@@ -92,6 +83,9 @@ Route::prefix('/v1/ampep')->group(function () {
 
     // Create Task by Textarea
     Route::post('/tasks/textarea', [AmPEPController::class, 'createNewTaskByTextarea']);
+
+    // Create Task by Codon
+    Route::post('/tasks/codon', [AmPEPController::class, 'createNewTaskByFileAndCodon']);
 });
 
 Route::prefix('/v1/acpep')->group(function () {

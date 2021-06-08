@@ -51,7 +51,7 @@ class TaskUtils
 
     public static function runAcPEPTask($task, $method)
     {
-        $process = new Process(['python3', '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
+        $process = new Process([env('PYTHON_VER', 'python3'), '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
         $process->setTimeout(3600);
         $process->run();
 
@@ -63,7 +63,7 @@ class TaskUtils
 
     public static function runAcPEPClassificationTask($task)
     {
-        $process = new Process(['python3', '../xDeep-AcPEP-Classification/main.py', "../xDeep-AcPEP-Classification/$task->id.fasta"]);
+        $process = new Process([env('PYTHON_VER', 'python3'), '../xDeep-AcPEP-Classification/main.py', "../xDeep-AcPEP-Classification/$task->id.fasta"]);
         $process->setTimeout(3600);
         $process->run();
 
@@ -75,7 +75,7 @@ class TaskUtils
 
     public static function runCodonTask($task, $codonCode = "1")
     {
-        $process = new Process(['python3', "../Genome/ORF.py", "storage/app/Tasks/$task->id/codon.fasta", "$codonCode"]);
+        $process = new Process([env('PYTHON_VER', 'python3'), "../Genome/ORF.py", "storage/app/Tasks/$task->id/codon.fasta", "$codonCode"]);
         $process->setTimeout(3600);
         $process->run();
 
@@ -87,7 +87,7 @@ class TaskUtils
 
     public static function runBESToxTask($task)
     {
-        $process = new Process(['python3', "../BESTox/main.py", "storage/app/Tasks/$task->id/input.smi", "storage/app/Tasks/$task->id/result.csv"]);
+        $process = new Process([env('PYTHON_VER', 'python3'), "../BESTox/main.py", "storage/app/Tasks/$task->id/input.smi", "storage/app/Tasks/$task->id/result.csv"]);
         $process->setTimeout(3600);
         $process->run();
 

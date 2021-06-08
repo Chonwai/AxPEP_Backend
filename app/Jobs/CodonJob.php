@@ -56,7 +56,7 @@ class CodonJob implements ShouldQueue
 
     public function failed(\Exception $e = null)
     {
-        echo("Fail Status:" . $e);
+        echo ("Fail Status:" . $e);
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }
