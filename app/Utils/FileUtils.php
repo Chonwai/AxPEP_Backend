@@ -102,6 +102,9 @@ class FileUtils
                 if ($val['id'] === $value[0]) {
                     $val["$method"] = $value[1];
                 }
+                if ($val["$method"] == '') {
+                    $val["$method"] = 'out of AD';
+                }
                 return $val;
             }, $classifications[0]);
         }
@@ -114,8 +117,12 @@ class FileUtils
         foreach ($fResult[0] as $key => $value) {
             $scores[0] = array_map(function ($val) use ($value) {
                 if ($val['id'] === $value[0]) {
-                    $val["classification"] = $value[1];
                     $val["score"] = $value[2];
+                    if ($value[1] != '') {
+                        $val["classification"] = $value[1];
+                    } else {
+                        $val["classification"] = '0';
+                    }
                 }
                 return $val;
             }, $scores[0]);
