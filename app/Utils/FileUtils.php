@@ -102,9 +102,6 @@ class FileUtils
                 if ($val['id'] === $value[0]) {
                     $val["$method"] = $value[1];
                 }
-                if ($val["$method"] == '') {
-                    $val["$method"] = 'out of AD';
-                }
                 return $val;
             }, $classifications[0]);
         }
