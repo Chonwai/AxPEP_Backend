@@ -30,7 +30,7 @@ class ServicesResFail implements ServicesResInterface
 
     public function createServicesRes($data)
     {
-        if ($data) {
+        if ($data !== NULL) {
             return Utils::integradeResponseMessage($data, true, 1);
         } else {
             return Utils::integradeResponseMessage(ResponseUtils::fail(), false, 9000);
