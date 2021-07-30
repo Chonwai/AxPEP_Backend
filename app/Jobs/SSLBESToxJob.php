@@ -10,11 +10,12 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class BESToxJob implements ShouldQueue
+class SSLBESToxJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $task;
+    private $request;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -28,9 +29,10 @@ class BESToxJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($task)
+    public function __construct($task, $request)
     {
         $this->task = $task;
+        $this->request = $request;
     }
 
     /**
@@ -40,8 +42,14 @@ class BESToxJob implements ShouldQueue
      */
     public function handle()
     {
-        echo ('Running ' . $this->task->id . " BESTox Task!\n");
-        TaskUtils::runBESToxTask($this->task);
+        foreach ($this->request['methods'] as $key => $value) {
+            if ($value == true) {
+                echo ('Running ' . $this->task->id . " SSL-BESTox's $key Task!\n");
+                TaskUtils::runSSLBESToxTask($this->task, $key);
+            } else {
+                continue;
+            }
+        }
         BESToxServices::getInstance()->finishedTask($this->task->id);
     }
 

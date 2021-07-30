@@ -4,6 +4,7 @@ use App\Http\Controllers\Apis\AcPEPController;
 use App\Http\Controllers\Apis\AmPEPController;
 use App\Http\Controllers\Apis\BESToxController;
 use App\Http\Controllers\Apis\CodonController;
+use App\Http\Controllers\Apis\SSLBestoxController;
 use App\Http\Controllers\Apis\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -112,4 +113,17 @@ Route::prefix('/v1/bestox')->group(function () {
 
     // Create Task by Textarea
     Route::post('/tasks/textarea', [BESToxController::class, 'createNewTaskByTextarea']);
+});
+
+Route::prefix('/v1/ssl-bestox')->group(function () {
+    /**
+     * Tasks API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Create Task by File
+    Route::post('/tasks/file', [SSLBestoxController::class, 'createNewTaskByFile']);
+
+    // Create Task by Textarea
+    Route::post('/tasks/textarea', [SSLBestoxController::class, 'createNewTaskByTextarea']);
 });

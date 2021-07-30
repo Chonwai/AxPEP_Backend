@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
-use App\Jobs\BESToxJob;
+use App\Jobs\SSLBESToxJob;
 use App\Utils\RequestUtils;
 use App\Utils\ResponseUtils;
 use App\Utils\Res\ResFactoryUtils;
@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
-class BESToxServices implements BaseServicesInterface
+class SSLBESToxServices implements BaseServicesInterface
 {
     private static $_instance = null;
 
@@ -44,10 +44,10 @@ class BESToxServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::emailRules());
                 break;
             case 'createNewTaskByTextarea':
-                $validator = Validator::make($request->all(), TasksRules::textareaSMIRules());
+                $validator = Validator::make($request->all(), TasksRules::textareaRules());
                 break;
             case 'createNewTaskByFile':
-                $validator = Validator::make($request->all(), TasksRules::fileSMIRules());
+                $validator = Validator::make($request->all(), TasksRules::fileRules());
                 break;
             case 'downloadSpecifyClassification':
                 $validator = Validator::make($request->all(), TasksRules::rules());
@@ -73,8 +73,8 @@ class BESToxServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
-        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.smi');
-        BESToxJob::dispatch($data)->delay(Carbon::now()->addSeconds(1));
+        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
+        SSLBESToxJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -83,8 +83,8 @@ class BESToxServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
-        Storage::disk('local')->put("Tasks/$data->id/input.smi", $request->smi);
-        BESToxJob::dispatch($data)->delay(Carbon::now()->addSeconds(1));
+        Storage::disk('local')->put("Tasks/$data->id/input.fasta", $request->fasta);
+        SSLBESToxJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 

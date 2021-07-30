@@ -97,6 +97,18 @@ class TaskUtils
         }
     }
 
+    public static function runSSLBESToxTask($task, $method)
+    {
+        $process = new Process([env('PYTHON_VER', 'python3'), "../SSL-BESTox/main.py", "-d", "storage/app/Tasks/$task->id/input.fasta", "-m", "../SSL-BESTox/model/", "-t", "$method", "-o", "storage/app/Tasks/$task->id/$method."]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+    }
+
     public static function renameCodonFasta($task)
     {
         $process = new Process(['mv', "storage/app/Tasks/$task->id/codon_orf.fasta", "storage/app/Tasks/$task->id/input.fasta"]);
