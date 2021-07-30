@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
 use App\Jobs\SSLBESToxJob;
+use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
 use App\Utils\ResponseUtils;
 use App\Utils\Res\ResFactoryUtils;
@@ -74,6 +75,8 @@ class SSLBESToxServices implements BaseServicesInterface
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
+        FileUtils::createSSLBESToxResultFile("Tasks/$data->id/", $methods);
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'SSL-BESTox');
         SSLBESToxJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
@@ -84,6 +87,8 @@ class SSLBESToxServices implements BaseServicesInterface
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
         Storage::disk('local')->put("Tasks/$data->id/input.fasta", $request->fasta);
+        FileUtils::createSSLBESToxResultFile("Tasks/$data->id/", $methods);
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'SSL-BESTox');
         SSLBESToxJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
@@ -106,6 +111,8 @@ class SSLBESToxServices implements BaseServicesInterface
     public function finishedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
+        $methods = DAOSimpleFactory::createTasksMethodsDAO()->getSpecifyByTaskID($taskID);
+        FileUtils::writeSSLBESToxResultFile($taskID, $methods);
         return $data;
     }
 

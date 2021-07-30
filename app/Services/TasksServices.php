@@ -81,6 +81,8 @@ class TasksServices implements BaseServicesInterface
             $data[0]->scores = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/score.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
         } elseif ($request->application == 'bestox') {
             $data[0]->result = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/result.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+        } elseif ($request->application == 'ssl-bestox') {
+            $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
         }
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }

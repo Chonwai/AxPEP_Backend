@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Services\BESToxServices;
+use App\Services\SSLBESToxServices;
 use App\Utils\TaskUtils;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -50,12 +51,12 @@ class SSLBESToxJob implements ShouldQueue
                 continue;
             }
         }
-        BESToxServices::getInstance()->finishedTask($this->task->id);
+        SSLBESToxServices::getInstance()->finishedTask($this->task->id);
     }
 
     public function failed(\Exception $e = null)
     {
         echo ("Fail Status:" . $e);
-        BESToxServices::getInstance()->failedTask($this->task->id);
+        SSLBESToxServices::getInstance()->failedTask($this->task->id);
     }
 }
