@@ -40,7 +40,7 @@ class FileUtils
     {
         $classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
         echo(json_encode($classifications));
-        if ($application === 'SSL-BESTox') {
+        if ($application === 'SSL-GCN') {
             return [$classifications];
         } else {
             $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
@@ -84,7 +84,7 @@ class FileUtils
 
     public static function writeSSLBESToxResultFile($id, $methods)
     {
-        [$classifications] = self::loadResultFile($id, $methods, 'SSL-BESTox');
+        [$classifications] = self::loadResultFile($id, $methods, 'SSL-GCN');
 
         foreach ($methods as $key => $value) {
             $classifications = self::matchingSSLBESToxClassification($id, $value->method, $classifications);
@@ -218,7 +218,7 @@ class FileUtils
             case 'BESTox':
                 $fScore = null;
                 break;
-            case 'SSL-BESTox':
+            case 'SSL-GCN':
                 $fScore = null;
                 break;
             default:
@@ -251,7 +251,7 @@ class FileUtils
                 } elseif ($function === 'AcPEP') {
                     fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['sequence' => $sequence]));
                     fputcsv($fScore, array_merge(['id' => $id], ['classification' => ''], ['score' => ''], ['sequence' => $sequence]));
-                } elseif ($function === 'SSL-BESTox') {
+                } elseif ($function === 'SSL-GCN') {
                     fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['smiles' => $sequence]));
                 }
             }

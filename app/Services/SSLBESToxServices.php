@@ -76,7 +76,7 @@ class SSLBESToxServices implements BaseServicesInterface
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
         FileUtils::createSSLBESToxResultFile("Tasks/$data->id/", $methods);
-        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'SSL-BESTox');
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'SSL-GCN');
         SSLBESToxJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
@@ -88,7 +88,7 @@ class SSLBESToxServices implements BaseServicesInterface
         TaskUtils::createTaskFolder($data);
         Storage::disk('local')->put("Tasks/$data->id/input.fasta", $request->fasta);
         FileUtils::createSSLBESToxResultFile("Tasks/$data->id/", $methods);
-        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'SSL-BESTox');
+        FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'SSL-GCN');
         SSLBESToxJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }

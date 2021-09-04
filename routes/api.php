@@ -115,7 +115,7 @@ Route::prefix('/v1/bestox')->group(function () {
     Route::post('/tasks/textarea', [BESToxController::class, 'createNewTaskByTextarea']);
 });
 
-Route::prefix('/v1/ssl-bestox')->group(function () {
+Route::prefix('/v1/ssl-gcn')->group(function () {
     /**
      * Tasks API ------------------------------------------------------------
      *

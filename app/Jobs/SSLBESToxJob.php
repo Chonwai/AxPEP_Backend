@@ -45,7 +45,7 @@ class SSLBESToxJob implements ShouldQueue
     {
         foreach ($this->request['methods'] as $key => $value) {
             if ($value == true) {
-                echo ('Running ' . $this->task->id . " SSL-BESTox's $key Task!\n");
+                echo ('Running ' . $this->task->id . " SSL-GCN's $key Task!\n");
                 TaskUtils::runSSLBESToxTask($this->task, $key);
             } else {
                 continue;
