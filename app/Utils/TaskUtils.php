@@ -99,7 +99,7 @@ class TaskUtils
 
     public static function runSSLBESToxTask($task, $method)
     {
-        $process = new Process([env('PYTHON_VER', 'python3'), "../SSL-BESTox/main.py", "-d", "storage/app/Tasks/$task->id/input.fasta", "-m", "../SSL-BESTox/model/", "-t", "$method", "-o", "storage/app/Tasks/$task->id/$method."]);
+        $process = new Process([env('PYTHON_VER', 'python3'), "../SSL-GCN/main.py", "-d", "storage/app/Tasks/$task->id/input.fasta", "-m", "../SSL-GCN/model/", "-t", "$method", "-o", "storage/app/Tasks/$task->id/$method."]);
         $process->setTimeout(3600);
         $process->run();
 
