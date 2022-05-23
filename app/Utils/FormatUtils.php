@@ -57,7 +57,7 @@ class FormatUtils
                     }
                 } else {
                     if (strlen($line) > 38) {
-                        $status = "The " . $headerAndSequenceList[$counter - 1] . " FASTA sequence " . $headerAndSequenceList[$counter - 2] . " is error! It is bigger than 38 characters!";
+                        $status = "The " . $headerAndSequenceList[$counter - 2] . " FASTA sequence " . $headerAndSequenceList[$counter - 1] . " is error! The sequence is bigger than 38 characters!";
                         break;
                     }
                 }
