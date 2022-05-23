@@ -38,7 +38,8 @@ class FormatUtils
         $counter = 0;
         $status = true;
         $headerList = [];
-        foreach (preg_split("/((\r?\n)|(\r\n?))/", $data) as $line) {
+        $headerAndSequenceList = preg_split("/((\r?\n)|(\r\n?))/", $data);
+        foreach ($headerAndSequenceList as $line) {
             if ($line != '' || $line != null) {
                 $counter++;
                 if ($counter % 2 == 1) {
@@ -56,7 +57,7 @@ class FormatUtils
                     }
                 } else {
                     if (strlen($line) > 38) {
-                        $status = "The " . $data[$counter - 1] . " FASTA sequence " . $data[$counter - 2] . " is error! It is bigger than 38 characters!";
+                        $status = "The " . $headerAndSequenceList[$counter - 1] . " FASTA sequence " . $headerAndSequenceList[$counter - 2] . " is error! It is bigger than 38 characters!";
                         break;
                     }
                 }
