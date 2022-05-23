@@ -45,10 +45,10 @@ class AcPEPServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::emailRules());
                 break;
             case 'createNewTaskByTextarea':
-                $validator = Validator::make($request->all(), TasksRules::textareaRules());
+                $validator = Validator::make($request->all(), TasksRules::acpepTextareaRules());
                 break;
             case 'createNewTaskByFile':
-                $validator = Validator::make($request->all(), TasksRules::fileRules());
+                $validator = Validator::make($request->all(), TasksRules::acpepFileRules());
                 break;
             case 'downloadSpecifyClassification':
                 $validator = Validator::make($request->all(), TasksRules::rules());
