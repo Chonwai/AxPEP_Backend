@@ -10,7 +10,7 @@ class CodonsDAOFactory implements BaseDAOFactory
 {
     public function getAll()
     {
-        $data = Codons::all();
+        $data = Codons::orderBy('codons_number', 'asc')->get();
         return $data;
     }
 
