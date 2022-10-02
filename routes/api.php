@@ -100,6 +100,9 @@ Route::prefix('/v1/acpep')->group(function () {
 
     // Create Task by Textarea
     Route::post('/tasks/textarea', [AcPEPController::class, 'createNewTaskByTextarea']);
+
+    // Create Task by Codon
+    Route::post('/tasks/codon', [AcPEPController::class, 'createNewTaskByFileAndCodon']);
 });
 
 Route::prefix('/v1/bestox')->group(function () {

@@ -31,4 +31,16 @@ class AcPEPController extends Controller
             return response()->json($status, 200);
         }
     }
+
+    public function createNewTaskByFileAndCodon(Request $request)
+    {
+        $status = AcPEPServices::getInstance()->dataValidation($request, 'createNewTaskByFileAndCodon');
+
+        if ($status === true) {
+            $res = AcPEPServices::getInstance()->createNewTaskByFileAndCodon($request);
+            return $res;
+        } else {
+            return response()->json($status, 200);
+        }
+    }
 }
