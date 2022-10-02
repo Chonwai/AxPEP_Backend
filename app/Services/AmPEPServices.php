@@ -103,7 +103,7 @@ class AmPEPServices implements BaseServicesInterface
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), "codon.fasta");
-        CodonJob::dispatch($data, $request->codon, $methods);
+        CodonJob::dispatch($data, $request->codon, $methods, 'AmPEP');
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(3));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }

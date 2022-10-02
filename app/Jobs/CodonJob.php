@@ -33,13 +33,13 @@ class CodonJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($task, $codonCode, $methods, $application = 'AmPEP')
+    public function __construct($task, $codonCode, $methods, $function)
     {
         $this->task = $task;
         $this->codonCode = $codonCode;
         $this->methods = $methods;
         $this->taskID = $task->id;
-        $this->application = $application;
+        $this->function = $function;
     }
 
     /**
@@ -53,7 +53,7 @@ class CodonJob implements ShouldQueue
         TaskUtils::runCodonTask($this->task, $this->codonCode);
         TaskUtils::renameCodonFasta($this->task);
         FileUtils::createResultFile("Tasks/$this->taskID/", $this->methods);
-        FileUtils::insertSequencesAndHeaderOnResult("storage/app/Tasks/$this->taskID/", $this->methods, $this->application);
+        FileUtils::insertSequencesAndHeaderOnResult("storage/app/Tasks/$this->taskID/", $this->methods, $this->function);
     }
 
     public function failed(\Exception $e = null)
