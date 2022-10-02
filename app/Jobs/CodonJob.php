@@ -19,7 +19,7 @@ class CodonJob implements ShouldQueue
     private $codonCode;
     private $methods;
     private $taskID;
-    private $application;
+    private $function;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -33,7 +33,7 @@ class CodonJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($task, $codonCode, $methods, $function)
+    public function __construct($task, $codonCode, $methods, $function = 'AmPEP')
     {
         $this->task = $task;
         $this->codonCode = $codonCode;
