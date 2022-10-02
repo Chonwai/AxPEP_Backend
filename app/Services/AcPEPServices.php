@@ -104,7 +104,7 @@ class AcPEPServices implements BaseServicesInterface
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), "codon.fasta");
         CodonJob::dispatch($data, $request->codon, $methods, 'AcPEP');
-        AcPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+        AcPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(5));
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
