@@ -14,16 +14,16 @@ return [
     | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     |
     */
-    
-    'paths' => ['api/*', 'api/v1', '*'],
 
-    'allowed_methods' => ['POST', 'GET', 'DELETE', 'PUT', '*'],
+    'paths' => ['api/*', 'api/v1'],
 
-    'allowed_origins' => ['http://159.203.14.63', 'http://localhost', 'http://159.203.14.63:80', 'http://localhost:8000', '*'],
+    'allowed_methods' => ['POST', 'GET', 'DELETE', 'PUT'],
 
-    'allowed_origins_patterns' => ['Google', '*'],
+    'allowed_origins' => ['http://159.203.14.63', 'http://localhost', 'http://159.203.14.63:80', 'http://localhost:8000', 'http://stage.cbbio.online:80'],
 
-    'allowed_headers' => ['X-Custom-Header', 'Upgrade-Insecure-Requests', '*'],
+    'allowed_origins_patterns' => ['Google'],
+
+    'allowed_headers' => ['X-Custom-Header', 'Upgrade-Insecure-Requests'],
 
     'exposed_headers' => false,
 
