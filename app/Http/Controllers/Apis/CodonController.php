@@ -19,7 +19,7 @@ class CodonController extends Controller
         } else {
             $ip = $_SERVER['REMOTE_ADDR'];
         }
-        echo $ip
+        echo $ip;
         // $res = CodonsServices::getInstance()->responseAll();
         // return $res;
     }
