@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['POST', 'GET', 'DELETE', 'PUT'],
 
-    'allowed_origins' => ['http://159.203.14.63', 'http://localhost:3000', 'http://159.203.14.63:80', 'http://localhost:8000', 'http://stage.cbbio.online:80', 'https://stage.cbbio.online'],
+    'allowed_origins' => ['http://159.203.14.63', 'http://localhost:3000', 'http://159.203.14.63:80', 'http://localhost:8000', 'http://stage.cbbio.online:80', 'https://stage.cbbio.online', 'https://app.cbbio.online'],
 
     'allowed_origins_patterns' => ['Google'],
 
