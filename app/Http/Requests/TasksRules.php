@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\AcPEPFastaFormatRule;
 use App\Rules\FastaFormatRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -46,10 +47,34 @@ class TasksRules extends FormRequest
      *
      * @return array
      */
+    public static function acpepTextareaRules()
+    {
+        return [
+            'fasta' => ['required', new AcPEPFastaFormatRule],
+        ];
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
     public static function fileRules()
     {
         return [
             'file' => ["required", "file", "mimes:txt", new FastaFormatRule],
+        ];
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public static function acpepFileRules()
+    {
+        return [
+            'file' => ["required", "file", "mimes:txt", new AcPEPFastaFormatRule],
         ];
     }
 
