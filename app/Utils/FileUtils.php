@@ -135,9 +135,9 @@ class FileUtils
         $fResult = Excel::toArray(new OutImport, "Tasks/$id/xDeep-AcPEP-Classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
         foreach ($fResult[0] as $key => $value) {
             $scores[0] = array_map(function ($val) use ($value) {
-                if ($val['id'] === $value[0] || str_replace('+|', 'P', $val['id']) === $value[0] || str_replace('-|', 'N', $val['id']) === $value[0]) {
+                if ($val['id'] === $value[0]) {
                     $val["score"] = $value[2];
-                    if ($value[1] !== '') {
+                    if ($value[1] != '') {
                         $val["classification"] = $value[1];
                     } else {
                         $val["classification"] = '0';
