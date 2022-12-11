@@ -52,7 +52,15 @@ class CodonJob implements ShouldQueue
         echo ('Running ' . $this->task->id . " Codon Task!\n");
         TaskUtils::runCodonTask($this->task, $this->codonCode);
         TaskUtils::renameCodonFasta($this->task);
-        FileUtils::createResultFile("Tasks/$this->taskID/", $this->methods);
+
+        if ($this->methods == 'AmPEP') {
+            FileUtils::createResultFile("Tasks/$this->taskID/", $this->methods);
+        } else if ($this->methods == 'AcPEP') {
+            FileUtils::createAcPEPResultFile("Tasks/$this->taskID/", $this->methods);
+        } else {
+            FileUtils::createResultFile("Tasks/$this->taskID/", $this->methods);
+        }
+
         FileUtils::insertSequencesAndHeaderOnResult("storage/app/Tasks/$this->taskID/", $this->methods, $this->function);
     }
 
