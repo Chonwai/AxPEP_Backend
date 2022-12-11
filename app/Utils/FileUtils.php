@@ -39,7 +39,7 @@ class FileUtils
     public static function loadResultFile($id, $methods, $application = 'AmPEP')
     {
         $classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
-        echo(json_encode($classifications));
+        echo (json_encode($classifications));
         if ($application === 'SSL-GCN') {
             return [$classifications];
         } else {
@@ -135,7 +135,7 @@ class FileUtils
         $fResult = Excel::toArray(new OutImport, "Tasks/$id/xDeep-AcPEP-Classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
         foreach ($fResult[0] as $key => $value) {
             $scores[0] = array_map(function ($val) use ($value) {
-                if ($val['id'] === $value[0]) {
+                if ($val['id'] === $value[0] || str_replace('+|', 'P', $val['id']) === $value[0] || str_replace('-|', 'N', $val['id']) === $value[0]) {
                     $val["score"] = $value[2];
                     if ($value[1] !== '') {
                         $val["classification"] = $value[1];
@@ -157,7 +157,7 @@ class FileUtils
             $classifications[0] = array_map(function ($val) use ($value, $method) {
                 if ($val['id'] === $value[0]) {
                     $val["$method"] = strval($value[2]);
-                    echo($value[2]);
+                    echo ($value[2]);
                 }
                 return $val;
             }, $classifications[0]);
