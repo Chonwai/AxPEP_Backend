@@ -45,15 +45,13 @@ class AmPEPJob implements ShouldQueue
         foreach ($this->request['methods'] as $key => $value) {
             if ($value == true) {
                 if ($key === 'ampep') {
-                    echo ('Running ' . $this->task->id . " AmPEP Task!\n");
                     TaskUtils::runAmPEPTask($this->task);
+                    TaskUtils::runAmpRegressionEcSaPredictMicroservice($this->task);
                 }
                 if ($key === 'deepampep30') {
-                    echo ('Running ' . $this->task->id . " DeepAmPEP30 Task!\n");
                     TaskUtils::runDeepAmPEP30Task($this->task);
                 }
                 if ($key === 'rfampep30') {
-                    echo ('Running ' . $this->task->id . " RFAmPEP30 Task!\n");
                     TaskUtils::runRFAmPEP30Task($this->task);
                 }
             } else {
@@ -64,9 +62,9 @@ class AmPEPJob implements ShouldQueue
         TasksServices::getInstance()->finishedTask($this->task->id);
     }
 
-    public function failed(\Exception $e = null)
+    public function failed(\Throwable $exception = null)
     {
-        echo ("Fail Status:" . $e);
+        echo "Fail Status: " . $exception->getMessage();
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }

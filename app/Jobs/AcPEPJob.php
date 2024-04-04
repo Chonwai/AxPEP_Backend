@@ -45,7 +45,6 @@ class AcPEPJob implements ShouldQueue
     {
         foreach ($this->request['methods'] as $key => $value) {
             if ($value == true) {
-                echo ('Running ' . $this->task->id . " AcPEP's $key Task!\n");
                 TaskUtils::runAcPEPTask($this->task, $key);
                 TaskUtils::renameAcPEPResultFile($this->task, $key);
             } else {

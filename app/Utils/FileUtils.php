@@ -39,9 +39,12 @@ class FileUtils
     public static function loadResultFile($id, $methods, $application = 'AmPEP')
     {
         $classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
-        echo (json_encode($classifications));
         if ($application === 'SSL-GCN') {
             return [$classifications];
+        } elseif ($application === 'AmPEP') {
+            $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
+            $ampActivityPrediction = Excel::toArray(new AmPEPResultImport, "Tasks/$id/amp_activity_prediction.csv", null, \Maatwebsite\Excel\Excel::CSV);
+            return [$classifications, $scores, $ampActivityPrediction];
         } else {
             $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
             return [$classifications, $scores];
@@ -56,10 +59,10 @@ class FileUtils
 
     public static function writeAmPEPResultFile($id, $methods)
     {
-        [$classifications, $scores] = self::loadResultFile($id, $methods, 'AmPEP');
+        [$classifications, $scores, $ampActivityPrediction] = self::loadResultFile($id, $methods, 'AmPEP');
 
         foreach ($methods as $key => $value) {
-            [$classifications, $scores] = self::matchingAmPEP($id, $value->method, $classifications, $scores);
+            [$classifications, $scores] = self::matchingAmPEP($id, $value->method, $classifications, $scores, $ampActivityPrediction);
         }
 
         [$classifications, $scores] = self::calculateResultFile($classifications, $scores, $methods);
@@ -93,7 +96,7 @@ class FileUtils
         Excel::store(new AmPEPResultExport($classifications[0]), "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
     }
 
-    public static function matchingAmPEP($id, $method, $classifications, $scores)
+    public static function matchingAmPEP($id, $method, $classifications, $scores, $ampActivityPrediction)
     {
         $fResult = Excel::toArray(new OutImport, "Tasks/$id/$method.out", null, \Maatwebsite\Excel\Excel::TSV);
         $symbol = " ";

@@ -5,6 +5,8 @@ namespace App\Utils;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use App\Services\AmpRegressionECSAPredictMicroserviceClient;
+use Illuminate\Support\Facades\Log;
 
 class TaskUtils
 {
@@ -15,7 +17,11 @@ class TaskUtils
 
     public static function runAmPEPTask($task)
     {
-        $process = new Process(['Rscript', '../AmPEP/predict.R', "storage/app/Tasks/$task->id/input.fasta", "storage/app/Tasks/$task->id/ampep.out"]);
+        $rScriptPath = env('AMPEP_PREDICT_R_PATH', '../AmPEP/predict.R');
+        $inputPath = storage_path("app/Tasks/$task->id/input.fasta");
+        $outputPath = storage_path("app/Tasks/$task->id/ampep.out");
+
+        $process = new Process(['Rscript', $rScriptPath, $inputPath, $outputPath]);
         $process->setTimeout(3600);
         $process->run();
 
@@ -46,6 +52,32 @@ class TaskUtils
         // executes after the command finishes
         if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
+        }
+    }
+
+    public static function runAmpRegressionEcSaPredictMicroservice($task)
+    {
+        try {
+            $fastaPath = "storage/app/Tasks/$task->id/input.fasta";
+            $taskID = $task->id;
+
+            $absolutePath = base_path($fastaPath);
+            $absoluteTargetPath = base_path("../AMP_Regression_EC_SA_Predict/fasta/$taskID.fasta");
+            $process = new Process(['cp', "$absolutePath", "$absoluteTargetPath"]);
+            $process->setTimeout(3600);
+            $process->run();
+
+            $microserviceClient = new AmpRegressionECSAPredictMicroserviceClient();
+            $microserviceClient->predict($fastaPath, $taskID);
+
+            $absoluteResultPath = base_path("../AMP_Regression_EC_SA_Predict/result/$taskID.csv");
+            $absoluteTargetResultPath = base_path("storage/app/Tasks/$task->id/amp_activity_prediction.csv");
+            $process = new Process(['cp', "$absoluteResultPath", "$absoluteTargetResultPath"]);
+            $process->setTimeout(3600);
+            $process->run();
+        } catch (\Exception $e) {
+            Log::error("AMP Regression Microservice call failed: " . $e->getMessage());
+            return null;
         }
     }
 
