@@ -30,6 +30,12 @@ class FileUtils
         Storage::put($path . 'classification.csv', 'id,' . $methodString . "smiles\n");
     }
 
+    public static function createEcotoxicologyResultFile($path, $methods)
+    {
+        $methodString = self::prepareMethodString($methods);
+        Storage::put($path . 'classification.csv', 'id,' . $methodString . "smiles\n");
+    }
+
     public static function insertSequencesAndHeaderOnResult($path, $methods, $function = 'AmPEP')
     {
         [$fInput, $fClassification, $fScore, $methodArray] = self::prepareSequencesAndHeaderFile($path, $methods, $function);
@@ -39,7 +45,7 @@ class FileUtils
     public static function loadResultFile($id, $methods, $application = 'AmPEP')
     {
         $classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
-        if ($application === 'SSL-GCN') {
+        if ($application === 'SSL-GCN' || $application === 'Ecotoxicology') {
             return [$classifications];
         } elseif ($application === 'AmPEP') {
             $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
@@ -90,7 +96,18 @@ class FileUtils
         [$classifications] = self::loadResultFile($id, $methods, 'SSL-GCN');
 
         foreach ($methods as $key => $value) {
-            $classifications = self::matchingSSLBESToxClassification($id, $value->method, $classifications);
+            $classifications = self::matchingSslGcnAndEcotoxicologyClassification($id, $value->method, $classifications);
+        }
+
+        Excel::store(new AmPEPResultExport($classifications[0]), "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    public static function writeEcotoxicologyResultFile($id, $methods)
+    {
+        [$classifications] = self::loadResultFile($id, $methods, 'Ecotoxicology');
+
+        foreach ($methods as $key => $value) {
+            $classifications = self::matchingSslGcnAndEcotoxicologyClassification($id, $value->method, $classifications);
         }
 
         Excel::store(new AmPEPResultExport($classifications[0]), "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
@@ -152,7 +169,7 @@ class FileUtils
         return $scores;
     }
 
-    public static function matchingSSLBESToxClassification($id, $method, $classifications)
+    public static function matchingSslGcnAndEcotoxicologyClassification($id, $method, $classifications)
     {
         $fResult = Excel::toArray(new OutImport, "Tasks/$id/$method.result.csv", null, \Maatwebsite\Excel\Excel::CSV);
         array_shift($fResult[0]);
@@ -160,11 +177,31 @@ class FileUtils
             $classifications[0] = array_map(function ($val) use ($value, $method) {
                 if ($val['id'] === $value[0]) {
                     $val["$method"] = strval($value[2]);
-                    echo ($value[2]);
                 }
                 return $val;
             }, $classifications[0]);
         }
+        return $classifications;
+    }
+
+    public static function matchingEcotoxicologyClassification($id, $method, $classifications)
+    {
+        $resultPath = "Tasks/$id/$method.result.csv";
+        if (!Storage::exists($resultPath)) {
+            throw new \Illuminate\Contracts\Filesystem\FileNotFoundException("File [$resultPath] does not exist and can therefore not be imported.");
+        }
+
+        $results = array_map('str_getcsv', file(Storage::path($resultPath)));
+        array_shift($results); // Remove header
+
+        foreach ($results as $result) {
+            $classifications[] = [
+                'id' => $result[0],
+                'smiles' => $result[1],
+                'pre' => $result[2],
+            ];
+        }
+
         return $classifications;
     }
 
@@ -224,6 +261,9 @@ class FileUtils
             case 'SSL-GCN':
                 $fScore = null;
                 break;
+            case 'Ecotoxicology':
+                $fScore = null;
+                break;
             default:
                 $fScore = fopen($path . 'score.csv', 'a+');
                 break;
@@ -254,7 +294,7 @@ class FileUtils
                 } elseif ($function === 'AcPEP') {
                     fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['sequence' => $sequence]));
                     fputcsv($fScore, array_merge(['id' => $id], ['classification' => ''], ['score' => ''], ['sequence' => $sequence]));
-                } elseif ($function === 'SSL-GCN') {
+                } elseif ($function === 'SSL-GCN' || $function === 'Ecotoxicology') {
                     fputcsv($fClassification, array_merge(['id' => $id], $methodArray, ['smiles' => $sequence]));
                 }
             }

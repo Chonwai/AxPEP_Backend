@@ -5,6 +5,7 @@ use App\Http\Controllers\Apis\AmPEPController;
 use App\Http\Controllers\Apis\BESToxController;
 use App\Http\Controllers\Apis\CodonController;
 use App\Http\Controllers\Apis\SSLBestoxController;
+use App\Http\Controllers\Apis\EcotoxicologyController;
 use App\Http\Controllers\Apis\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -129,4 +130,17 @@ Route::prefix('/v1/ssl-gcn')->group(function () {
 
     // Create Task by Textarea
     Route::post('/tasks/textarea', [SSLBestoxController::class, 'createNewTaskByTextarea']);
+});
+
+Route::prefix('/v1/ecotoxicology')->group(function () {
+    /**
+     * Tasks API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Create Task by File
+    Route::post('/tasks/file', [EcotoxicologyController::class, 'createNewTaskByFile']);
+
+    // Create Task by Textarea
+    Route::post('/tasks/textarea', [EcotoxicologyController::class, 'createNewTaskByTextarea']);
 });

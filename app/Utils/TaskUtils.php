@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use App\Services\AmpRegressionECSAPredictMicroserviceClient;
+use App\Services\EcotoxicologyMicroserviceClient;
 use Illuminate\Support\Facades\Log;
 
 class TaskUtils
@@ -138,6 +139,43 @@ class TaskUtils
         // executes after the command finishes
         if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
+        }
+    }
+
+    public static function runEcotoxicologyTask($task, $method)
+    {
+        try {
+            $fastaPath = "storage/app/Tasks/$task->id/input.fasta";
+            $taskID = $task->id;
+
+            $microserviceClient = new EcotoxicologyMicroserviceClient();
+            $response = $microserviceClient->predict($fastaPath, $method);
+
+            if ($response && $response['status'] == 'success') {
+                $resultPath = "Tasks/$task->id/$method.result.csv";
+
+                // 使用 Storage facade 來創建和寫入文件
+                Storage::put($resultPath, '');
+                $file = Storage::path($resultPath);
+                $handle = fopen($file, 'w');
+                if ($handle === false) {
+                    throw new \Exception("Failed to open file: $file");
+                }
+                fputcsv($handle, ['id', 'smiles', 'pre']);
+                foreach ($response['data']['fasta_ids'] as $index => $fasta_id) {
+                    fputcsv($handle, [
+                        $fasta_id,
+                        $response['data']['smiles'][$index],
+                        $response['data']['predictions'][$index]
+                    ]);
+                }
+                fclose($handle);
+            } else {
+                throw new \Exception("Microservice response is not successful");
+            }
+        } catch (\Exception $e) {
+            Log::error("Ecotoxicology Microservice call failed: " . $e->getMessage());
+            return null;
         }
     }
 
