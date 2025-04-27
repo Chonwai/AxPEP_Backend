@@ -1,0 +1,64 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# AxPEP_Backend 專案概述
+
+## 系統介紹
+
+AxPEP_Backend 是一個基於 Laravel 的生物信息學 RESTful API 系統，專注於提供多種肽序列分析服務。系統支持抗菌肽(AmPEP)、抗癌肽(AcPEP)、毒理學(BESTox)和生態毒理學(Ecotoxicology)等多種分析方法，能夠處理不同格式的輸入數據，並通過異步處理機制完成計算密集型的分析任務。
+
+## 系統架構
+
+本系統採用分層架構，主要包括：
+- API 控制器層：處理HTTP請求，位於 [app/Http/Controllers/Apis](mdc:app/Http/Controllers/Apis) 目錄
+- 服務層：實現核心業務邏輯，位於 [app/Services](mdc:app/Services) 目錄
+- 數據訪問層：封裝數據庫操作，位於 [app/DAO](mdc:app/DAO) 目錄
+- 模型層：定義數據結構和關聯，位於 [app/Models](mdc:app/Models) 目錄
+- 工具類：提供各種輔助功能，位於 [app/Utils](mdc:app/Utils) 目錄
+- 任務處理：定義後台異步任務，位於 [app/Jobs](mdc:app/Jobs) 目錄
+
+## 核心文件
+
+### 路由配置
+所有API路由定義在 [routes/api.php](mdc:routes/api.php) 文件中，包含了各種分析服務的端點。
+
+### 關鍵模型
+- [app/Models/Tasks.php](mdc:app/Models/Tasks.php)：定義任務數據結構
+- [app/Models/TasksMethods.php](mdc:app/Models/TasksMethods.php)：定義任務使用的分析方法
+- [app/Models/Codons.php](mdc:app/Models/Codons.php)：定義密碼子信息
+
+### 核心服務
+- [app/Services/AmPEPServices.php](mdc:app/Services/AmPEPServices.php)：抗菌肽分析服務
+- [app/Services/AcPEPServices.php](mdc:app/Services/AcPEPServices.php)：抗癌肽分析服務
+- [app/Services/BESToxServices.php](mdc:app/Services/BESToxServices.php)：毒理學分析服務
+- [app/Services/TasksServices.php](mdc:app/Services/TasksServices.php)：任務管理服務
+
+### 控制器
+- [app/Http/Controllers/Apis/TaskController.php](mdc:app/Http/Controllers/Apis/TaskController.php)：任務管理控制器
+- [app/Http/Controllers/Apis/AmPEPController.php](mdc:app/Http/Controllers/Apis/AmPEPController.php)：抗菌肽分析控制器
+- [app/Http/Controllers/Apis/AcPEPController.php](mdc:app/Http/Controllers/Apis/AcPEPController.php)：抗癌肽分析控制器
+
+### 後台任務
+- [app/Jobs/AmPEPJob.php](mdc:app/Jobs/AmPEPJob.php)：處理抗菌肽分析的後台任務
+- [app/Jobs/AcPEPJob.php](mdc:app/Jobs/AcPEPJob.php)：處理抗癌肽分析的後台任務
+- [app/Jobs/BESToxJob.php](mdc:app/Jobs/BESToxJob.php)：處理毒理學分析的後台任務
+
+## 系統流程
+
+典型工作流程：
+1. 用戶通過API提交序列數據（如經由 [app/Http/Controllers/Apis/AmPEPController.php](mdc:app/Http/Controllers/Apis/AmPEPController.php)）
+2. 控制器調用相應服務層處理（如 [app/Services/AmPEPServices.php](mdc:app/Services/AmPEPServices.php)）
+3. 服務層創建任務記錄並分發到隊列（如 [app/Jobs/AmPEPJob.php](mdc:app/Jobs/AmPEPJob.php)）
+4. 隊列處理任務並更新結果
+5. 用戶查詢或下載結果（經由 [app/Http/Controllers/Apis/TaskController.php](mdc:app/Http/Controllers/Apis/TaskController.php)）
+
+## 開發指南
+
+新增功能時請遵循以下步驟：
+1. 在服務層實現業務邏輯
+2. 在控制器中暴露API接口
+3. 在路由文件中註冊新端點
+4. 若需後台處理，則創建相應的Job類

@@ -1,0 +1,97 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# AxPEP_Backend 新工程師指南
+
+## 專案概述
+
+AxPEP_Backend 是基於 Laravel 的生物信息學 RESTful API 系統，專注於提供肽序列分析服務，包括抗菌肽(AmPEP)、抗癌肽(AcPEP)和毒理學(BESTox)等多種分析方法。
+
+## 系統架構
+
+本系統採用分層架構：
+- API 控制器層：位於 [app/Http/Controllers/Apis](mdc:app/Http/Controllers/Apis) 目錄
+- 服務層：位於 [app/Services](mdc:app/Services) 目錄，使用單例模式
+- 數據訪問層：位於 [app/DAO](mdc:app/DAO) 目錄，使用工廠模式
+- 模型層：位於 [app/Models](mdc:app/Models) 目錄
+- 工具類：位於 [app/Utils](mdc:app/Utils) 目錄
+- 異步任務處理：位於 [app/Jobs](mdc:app/Jobs) 目錄
+
+## 關鍵文件
+
+### 路由
+- [routes/api.php](mdc:routes/api.php)：定義所有API端點
+
+### 控制器
+- [app/Http/Controllers/Apis/TaskController.php](mdc:app/Http/Controllers/Apis/TaskController.php)：任務管理
+- [app/Http/Controllers/Apis/AmPEPController.php](mdc:app/Http/Controllers/Apis/AmPEPController.php)：抗菌肽分析
+- [app/Http/Controllers/Apis/AcPEPController.php](mdc:app/Http/Controllers/Apis/AcPEPController.php)：抗癌肽分析
+- [app/Http/Controllers/Apis/BESToxController.php](mdc:app/Http/Controllers/Apis/BESToxController.php)：毒理學分析
+
+### 服務
+- [app/Services/AmPEPServices.php](mdc:app/Services/AmPEPServices.php)：抗菌肽業務邏輯
+- [app/Services/TasksServices.php](mdc:app/Services/TasksServices.php)：任務管理業務邏輯
+- [app/Services/BaseServicesInterface.php](mdc:app/Services/BaseServicesInterface.php)：服務層接口
+
+### 模型
+- [app/Models/Tasks.php](mdc:app/Models/Tasks.php)：任務數據模型
+- [app/Models/TasksMethods.php](mdc:app/Models/TasksMethods.php)：任務方法模型
+
+### 任務隊列
+- [app/Jobs/AmPEPJob.php](mdc:app/Jobs/AmPEPJob.php)：抗菌肽分析任務
+- [app/Jobs/AcPEPJob.php](mdc:app/Jobs/AcPEPJob.php)：抗癌肽分析任務
+
+## 開發模式
+
+### 設計模式
+1. **單例模式**：所有服務類都使用單例模式，通過`getInstance()`方法訪問
+   ```php
+   $service = AmPEPServices::getInstance();
+   ```
+
+2. **工廠模式**：使用`DAOSimpleFactory`創建DAO對象
+   ```php
+   $dao = DAOSimpleFactory::createTasksDAO();
+   ```
+
+3. **異步處理**：使用Laravel隊列處理長時間任務
+   ```php
+   AmPEPJob::dispatch($task, $request->input());
+   ```
+
+### 代碼規範
+- 控制器僅負責參數驗證和服務調用
+- 業務邏輯必須在服務層實現
+- 所有數據庫操作通過DAO層進行
+- 服務類實現單例模式
+- 使用隊列處理計算密集型任務
+
+## 開發工作流程
+
+1. **創建新功能**：
+   - 在服務層實現業務邏輯
+   - 在控制器中暴露API接口
+   - 註冊路由
+   - 如需異步處理，添加Job類
+
+2. **新增分析方法**：
+   - 參考現有實現，如 [app/Services/AmPEPServices.php](mdc:app/Services/AmPEPServices.php)
+   - 創建相應的控制器、服務和任務類
+
+## 典型數據流程
+
+1. 客戶端提交序列 → 控制器接收請求
+2. 控制器調用服務層 → 服務層創建任務並分發到隊列
+3. 隊列處理任務 → 更新任務狀態
+4. 客戶端查詢任務狀態 → 下載分析結果
+
+## 環境設置
+
+請查看 [composer.json](mdc:composer.json) 了解依賴項，並確保:
+- PHP 8.0+
+- MySQL 數據庫
+- Redis (用於隊列)
+- Laravel 8.x 環境
