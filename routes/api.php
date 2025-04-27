@@ -7,6 +7,7 @@ use App\Http\Controllers\Apis\CodonController;
 use App\Http\Controllers\Apis\SSLBestoxController;
 use App\Http\Controllers\Apis\EcotoxicologyController;
 use App\Http\Controllers\Apis\TaskController;
+use App\Http\Controllers\Apis\HemoPepController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -143,4 +144,17 @@ Route::prefix('/v1/ecotoxicology')->group(function () {
 
     // Create Task by Textarea
     Route::post('/tasks/textarea', [EcotoxicologyController::class, 'createNewTaskByTextarea']);
+});
+
+Route::prefix('/v1/hemopep')->group(function () {
+    /**
+     * Tasks API ------------------------------------------------------------
+     *
+     * @api
+     */
+    // Create Task by File
+    Route::post('/tasks/file', [HemoPepController::class, 'createNewTaskByFile']);
+
+    // Create Task by Textarea
+    Route::post('/tasks/textarea', [HemoPepController::class, 'createNewTaskByTextarea']);
 });

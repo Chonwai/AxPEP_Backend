@@ -30,4 +30,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'bert_hemopep60' => [
+        'url' => env('BERT_HEMOPEP60_MICROSERVICE_BASE_URL', 'http://localhost:8000'),
+    ],
+
 ];

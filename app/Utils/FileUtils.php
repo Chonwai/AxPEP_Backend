@@ -7,6 +7,7 @@ use App\Imports\AmPEPResultImport;
 use App\Imports\OutImport;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Log;
 
 class FileUtils
 {
@@ -111,6 +112,32 @@ class FileUtils
         }
 
         Excel::store(new AmPEPResultExport($classifications[0]), "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    public static function writeHemoPepResultFile($taskID, $methods)
+    {
+        try {
+            $resultJsonPath = "../storage/app/Tasks/$taskID/hemopep60_result.json";
+            $detailedCsvPath = "../storage/app/Tasks/$taskID/hemopep60_detailed.csv";
+
+            if (file_exists($resultJsonPath) && file_exists($detailedCsvPath)) {
+                $jsonContent = file_get_contents($resultJsonPath);
+                $result = json_decode($jsonContent, true);
+
+                if ($result && isset($result['data'])) {
+                    // 處理詳細結果文件
+                    foreach ($methods as $method) {
+                        if ($method->method === 'hemopep60') {
+                            $methodResultFile = "../storage/app/Tasks/$taskID/{$method->method}_result.csv";
+                            copy($detailedCsvPath, $methodResultFile);
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error("寫入HemoPep結果文件錯誤: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     public static function matchingAmPEP($id, $method, $classifications, $scores, $ampActivityPrediction)
