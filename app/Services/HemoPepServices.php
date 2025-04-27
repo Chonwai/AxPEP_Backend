@@ -62,6 +62,11 @@ class HemoPepServices implements BaseServicesInterface
 
     public function createNewTaskByFile(Request $request)
     {
+        // 確保設置source值
+        if (!$request->has('source')) {
+            $request->merge(['source' => 'hemopep']);
+        }
+
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
@@ -74,6 +79,11 @@ class HemoPepServices implements BaseServicesInterface
 
     public function createNewTaskByTextarea(Request $request)
     {
+        // 確保設置source值
+        if (!$request->has('source')) {
+            $request->merge(['source' => 'hemopep']);
+        }
+
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);

@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\Services\BERTHemoPep60MicroserviceClient;
 use App\Services\TasksServices;
-use App\Utils\TaskUtils;
+use App\Services\HemoPepServices;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -59,10 +59,10 @@ class HemoPepJob implements ShouldQueue
                 }
             }
 
-            TasksServices::getInstance()->finishedTask($this->task->id);
+            HemoPepServices::getInstance()->finishedTask($this->task->id);
         } catch (\Exception $e) {
             Log::error("HemoPep任務失敗: " . $e->getMessage());
-            TasksServices::getInstance()->failedTask($this->task->id);
+            HemoPepServices::getInstance()->failedTask($this->task->id);
             throw $e;
         }
     }

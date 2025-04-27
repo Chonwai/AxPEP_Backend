@@ -114,28 +114,66 @@ class FileUtils
         Excel::store(new AmPEPResultExport($classifications[0]), "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
     }
 
+    /**
+     * 寫入HemoPep結果文件
+     *
+     * @param string $taskID 任務ID
+     * @param array $methods 任務方法
+     * @return void
+     */
     public static function writeHemoPepResultFile($taskID, $methods)
     {
         try {
-            $resultJsonPath = "../storage/app/Tasks/$taskID/hemopep60_result.json";
+            // 獲取詳細結果文件路徑
             $detailedCsvPath = "../storage/app/Tasks/$taskID/hemopep60_detailed.csv";
 
-            if (file_exists($resultJsonPath) && file_exists($detailedCsvPath)) {
-                $jsonContent = file_get_contents($resultJsonPath);
-                $result = json_decode($jsonContent, true);
+            if (file_exists($detailedCsvPath)) {
+                // 讀取詳細結果數據
+                $csvContent = file_get_contents($detailedCsvPath);
+                $lines = explode("\n", $csvContent);
 
-                if ($result && isset($result['data'])) {
-                    // 處理詳細結果文件
-                    foreach ($methods as $method) {
-                        if ($method->method === 'hemopep60') {
-                            $methodResultFile = "../storage/app/Tasks/$taskID/{$method->method}_result.csv";
-                            copy($detailedCsvPath, $methodResultFile);
-                        }
+                // 創建分類文件（classification.csv）
+                $classificationContent = "id,sequence\n";
+
+                // 創建得分文件（score.csv）
+                $scoreContent = "id,hc50_score\n";
+
+                // 跳過標題行，處理每一行數據
+                for ($i = 1; $i < count($lines); $i++) {
+                    if (empty(trim($lines[$i]))) continue;
+
+                    $fields = str_getcsv($lines[$i]);
+                    if (count($fields) >= 5) { // 確保有足夠的欄位
+                        $seqId = $fields[0];
+                        $sequence = $fields[1];
+                        $hc50 = $fields[4]; // HC50值
+
+                        // 添加到分類文件
+                        $classificationContent .= "$seqId,$sequence\n";
+
+                        // 添加到得分文件
+                        $scoreContent .= "$seqId,$hc50\n";
                     }
                 }
+
+                // 寫入分類文件
+                file_put_contents("../storage/app/Tasks/$taskID/classification.csv", $classificationContent);
+
+                // 寫入得分文件
+                file_put_contents("../storage/app/Tasks/$taskID/score.csv", $scoreContent);
+
+                // 如果需要，可以從詳細文件直接複製到各方法的結果文件
+                foreach ($methods as $method) {
+                    if ($method->method === 'hemopep60') {
+                        $methodResultFile = "../storage/app/Tasks/$taskID/{$method->method}_result.csv";
+                        copy($detailedCsvPath, $methodResultFile);
+                    }
+                }
+            } else {
+                throw new \Exception("找不到HemoPep詳細結果文件: $detailedCsvPath");
             }
         } catch (\Exception $e) {
-            Log::error("寫入HemoPep結果文件錯誤: " . $e->getMessage());
+            \Log::error("寫入HemoPep結果文件錯誤: " . $e->getMessage());
             throw $e;
         }
     }
