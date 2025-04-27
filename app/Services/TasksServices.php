@@ -86,6 +86,13 @@ class TasksServices implements BaseServicesInterface
             $data[0]->result = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/result.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
         } elseif ($request->application == 'ssl-gcn' || $request->application == 'ecotoxicology') {
             $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+        } elseif ($request->application == 'hemopep') {
+            $data[0]->classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+            $data[0]->scores = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/score.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+
+            if (Storage::disk('local')->exists("Tasks/$request->id/hemopep60_detailed.csv")) {
+                $data[0]->detailed_predictions = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/hemopep60_detailed.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
+            }
         }
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
