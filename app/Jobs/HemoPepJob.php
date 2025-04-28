@@ -85,6 +85,16 @@ class HemoPepJob implements ShouldQueue
 
         // 創建CSV結果文件
         $this->createCsvResultFile($result);
+
+        // 確保文件存在且路徑正確
+        $detailedCsvPath = storage_path("app/Tasks/{$this->task->id}/hemopep60_detailed.csv");
+
+        if (!file_exists($detailedCsvPath)) {
+            \Log::warning("CSV文件未找到，嘗試替代路徑");
+            // 檢查檔案是否存在於任務目錄
+            $dirContents = scandir(storage_path("app/Tasks/{$this->task->id}"));
+            \Log::info("目錄內容: " . implode(", ", $dirContents));
+        }
     }
 
     /**

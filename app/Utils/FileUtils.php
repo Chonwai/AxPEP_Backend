@@ -124,8 +124,8 @@ class FileUtils
     public static function writeHemoPepResultFile($taskID, $methods)
     {
         try {
-            // 獲取詳細結果文件路徑
-            $detailedCsvPath = "../storage/app/Tasks/$taskID/hemopep60_detailed.csv";
+            // 使用 Storage 門面獲取絕對路徑
+            $detailedCsvPath = storage_path("app/Tasks/$taskID/hemopep60_detailed.csv");
 
             if (file_exists($detailedCsvPath)) {
                 // 讀取詳細結果數據
@@ -157,15 +157,15 @@ class FileUtils
                 }
 
                 // 寫入分類文件
-                file_put_contents("../storage/app/Tasks/$taskID/classification.csv", $classificationContent);
+                file_put_contents(storage_path("app/Tasks/$taskID/classification.csv"), $classificationContent);
 
                 // 寫入得分文件
-                file_put_contents("../storage/app/Tasks/$taskID/score.csv", $scoreContent);
+                file_put_contents(storage_path("app/Tasks/$taskID/score.csv"), $scoreContent);
 
                 // 如果需要，可以從詳細文件直接複製到各方法的結果文件
                 foreach ($methods as $method) {
                     if ($method->method === 'hemopep60') {
-                        $methodResultFile = "../storage/app/Tasks/$taskID/{$method->method}_result.csv";
+                        $methodResultFile = storage_path("app/Tasks/$taskID/{$method->method}_result.csv");
                         copy($detailedCsvPath, $methodResultFile);
                     }
                 }

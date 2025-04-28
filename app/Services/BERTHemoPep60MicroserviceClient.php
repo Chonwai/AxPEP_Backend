@@ -28,6 +28,7 @@ class BERTHemoPep60MicroserviceClient
     public function predict($fastaContent)
     {
         try {
+            \Log::info("開始調用BERT-HemoPep60微服務");
             $response = $this->client->request('POST', $this->baseUrl . '/api/predict', [
                 'json' => [
                     'fasta' => $fastaContent,
@@ -43,6 +44,7 @@ class BERTHemoPep60MicroserviceClient
                 throw new \Exception('API返回非成功狀態: ' . json_encode($result));
             }
 
+            \Log::info("成功獲取BERT-HemoPep60微服務響應: " . substr(json_encode($result), 0, 200) . "...");
             return $result;
         } catch (RequestException $e) {
             Log::error('BERT-HemoPep60微服務調用失敗: ' . $e->getMessage());
