@@ -14,6 +14,7 @@ class SSLBestoxController extends Controller
 
         if ($status === true) {
             $res = SSLBESToxServices::getInstance()->createNewTaskByFile($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -26,6 +27,7 @@ class SSLBestoxController extends Controller
 
         if ($status === true) {
             $res = SSLBESToxServices::getInstance()->createNewTaskByTextarea($request);
+
             return $res;
         } else {
             return response()->json($status, 200);

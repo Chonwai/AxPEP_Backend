@@ -62,7 +62,7 @@ class TasksRules extends FormRequest
     public static function fileRules()
     {
         return [
-            'file' => ["required", "file", "mimes:txt", new FastaFormatRule],
+            'file' => ['required', 'file', 'mimes:txt', new FastaFormatRule],
         ];
     }
 
@@ -74,7 +74,7 @@ class TasksRules extends FormRequest
     public static function acpepFileRules()
     {
         return [
-            'file' => ["required", "file", "mimes:txt", new AcPEPFastaFormatRule],
+            'file' => ['required', 'file', 'mimes:txt', new AcPEPFastaFormatRule],
         ];
     }
 
@@ -98,7 +98,7 @@ class TasksRules extends FormRequest
     public static function fileSMIRules()
     {
         return [
-            'file' => ["required", "file", "mimes:txt"],
+            'file' => ['required', 'file', 'mimes:txt'],
         ];
     }
 
@@ -122,7 +122,7 @@ class TasksRules extends FormRequest
     public static function codonRules()
     {
         return [
-            'file' => ["required", "file", "mimes:txt"],
+            'file' => ['required', 'file', 'mimes:txt'],
             'codon' => 'required',
         ];
     }

@@ -10,6 +10,7 @@ class GenerateUtils
     public static function generateUUID()
     {
         $id = Str::uuid()->toString();
+
         return $id;
     }
 
@@ -17,7 +18,8 @@ class GenerateUtils
      * Generate ORM Insert Object which can directly insert to DB by ORM.
      *
      * @method
-     * @return Array
+     *
+     * @return array
      */
     public static function generateORMInsertObject($originalArray, $additionalArray)
     {
@@ -27,6 +29,7 @@ class GenerateUtils
     public static function generateFinishedTasksObject($task_id, $action_state)
     {
         $accessObject = (object) ['id' => $task_id, 'action' => $action_state];
+
         return $accessObject;
     }
 
@@ -37,6 +40,7 @@ class GenerateUtils
             $location = geoip($record->ip);
             array_push($object, (object) ['latitude' => $location->lat, 'longitude' => $location->lon]);
         }
+
         return $object;
     }
 
@@ -51,6 +55,7 @@ class GenerateUtils
                 }
             }
         }
+
         return $object;
     }
 }

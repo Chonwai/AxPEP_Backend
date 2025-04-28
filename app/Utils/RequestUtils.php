@@ -18,8 +18,9 @@ class RequestUtils
 
     /**
      * Add Specific Input on $request.
-     * @param array $specificInput
-     * @param Request $request
+     *
+     * @param  array  $specificInput
+     * @param  Request  $request
      * @return void
      */
     public static function addSpecificInput($specificInput)

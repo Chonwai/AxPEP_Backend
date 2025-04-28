@@ -10,16 +10,16 @@ class DAOSimpleFactory
 {
     public static function createTasksDAO()
     {
-        return new TasksDAOFactory();
+        return new TasksDAOFactory;
     }
 
     public static function createTasksMethodsDAO()
     {
-        return new TasksMethodsDAOFactory();
+        return new TasksMethodsDAOFactory;
     }
 
     public static function createCodonsDAO()
     {
-        return new CodonsDAOFactory();
+        return new CodonsDAOFactory;
     }
 }

@@ -40,14 +40,14 @@ class BESToxJob implements ShouldQueue
      */
     public function handle()
     {
-        echo ('Running ' . $this->task->id . " BESTox Task!\n");
+        echo 'Running '.$this->task->id." BESTox Task!\n";
         TaskUtils::runBESToxTask($this->task);
         BESToxServices::getInstance()->finishedTask($this->task->id);
     }
 
-    public function failed(\Exception $e = null)
+    public function failed(?\Exception $e = null)
     {
-        echo ("Fail Status:" . $e);
+        echo 'Fail Status:'.$e;
         BESToxServices::getInstance()->failedTask($this->task->id);
     }
 }

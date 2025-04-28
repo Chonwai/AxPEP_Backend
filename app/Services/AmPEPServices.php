@@ -8,8 +8,8 @@ use App\Jobs\AmPEPJob;
 use App\Jobs\CodonJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
-use App\Utils\ResponseUtils;
 use App\Utils\Res\ResFactoryUtils;
+use App\Utils\ResponseUtils;
 use App\Utils\TaskUtils;
 use App\Utils\Utils;
 use Carbon\Carbon;
@@ -33,9 +33,10 @@ class AmPEPServices implements BaseServicesInterface
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 
@@ -61,12 +62,13 @@ class AmPEPServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::rules());
                 break;
             default:
-                # code...
+                // code...
                 break;
         }
 
         if ($validator->fails()) {
             $res = Utils::integradeResponseMessage(ResponseUtils::validatorErrorMessage($validator), false, 1000);
+
             return $res;
         } else {
             return true;
@@ -82,6 +84,7 @@ class AmPEPServices implements BaseServicesInterface
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AmPEP');
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -94,6 +97,7 @@ class AmPEPServices implements BaseServicesInterface
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'AmPEP');
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -102,9 +106,10 @@ class AmPEPServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->insert($request);
         $methods = $this->insertTasksMethods($request, $data);
         TaskUtils::createTaskFolder($data);
-        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), "codon.fasta");
+        Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'codon.fasta');
         CodonJob::dispatch($data, $request->codon, $methods, 'AmPEP');
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(60));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -120,6 +125,7 @@ class AmPEPServices implements BaseServicesInterface
                 continue;
             }
         }
+
         return $methods;
     }
 
@@ -128,12 +134,14 @@ class AmPEPServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
         $methods = DAOSimpleFactory::createTasksMethodsDAO()->getSpecifyByTaskID($taskID);
         FileUtils::writeAcPEPResultFile($taskID, $methods);
+
         return $data;
     }
 
     public function failedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->failed($taskID);
+
         return $data;
     }
 }

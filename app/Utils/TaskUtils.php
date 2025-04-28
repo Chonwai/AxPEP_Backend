@@ -2,12 +2,12 @@
 
 namespace App\Utils;
 
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
 use App\Services\AmpRegressionECSAPredictMicroserviceClient;
 use App\Services\EcotoxicologyMicroserviceClient;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class TaskUtils
 {
@@ -27,7 +27,7 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
@@ -39,7 +39,7 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
@@ -51,7 +51,7 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
@@ -68,7 +68,7 @@ class TaskUtils
             $process->setTimeout(3600);
             $process->run();
 
-            $microserviceClient = new AmpRegressionECSAPredictMicroserviceClient();
+            $microserviceClient = new AmpRegressionECSAPredictMicroserviceClient;
             $microserviceClient->predict($fastaPath, $taskID);
 
             $absoluteResultPath = base_path("../AMP_Regression_EC_SA_Predict/result/$taskID.csv");
@@ -77,8 +77,9 @@ class TaskUtils
             $process->setTimeout(3600);
             $process->run();
         } catch (\Exception $e) {
-            Log::error("AMP Regression Microservice call failed: " . $e->getMessage());
-            return null;
+            Log::error('AMP Regression Microservice call failed: '.$e->getMessage());
+
+            return;
         }
     }
 
@@ -89,7 +90,7 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
@@ -101,43 +102,43 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
 
-    public static function runCodonTask($task, $codonCode = "1")
+    public static function runCodonTask($task, $codonCode = '1')
     {
-        $process = new Process([env('PYTHON_VER', 'python3'), "../Genome/ORF.py", "storage/app/Tasks/$task->id/codon.fasta", "$codonCode"]);
+        $process = new Process([env('PYTHON_VER', 'python3'), '../Genome/ORF.py', "storage/app/Tasks/$task->id/codon.fasta", "$codonCode"]);
         $process->setTimeout(3600);
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
 
     public static function runBESToxTask($task)
     {
-        $process = new Process([env('PYTHON_VER', 'python3'), "../BESTox/main.py", "storage/app/Tasks/$task->id/input.smi", "storage/app/Tasks/$task->id/result.csv"]);
+        $process = new Process([env('PYTHON_VER', 'python3'), '../BESTox/main.py', "storage/app/Tasks/$task->id/input.smi", "storage/app/Tasks/$task->id/result.csv"]);
         $process->setTimeout(3600);
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
 
     public static function runSSLBESToxTask($task, $method)
     {
-        $process = new Process([env('PYTHON_VER', 'python3'), "../SSL-GCN/main.py", "-d", "storage/app/Tasks/$task->id/input.fasta", "-m", "../SSL-GCN/model/", "-t", "$method", "-o", "storage/app/Tasks/$task->id/$method."]);
+        $process = new Process([env('PYTHON_VER', 'python3'), '../SSL-GCN/main.py', '-d', "storage/app/Tasks/$task->id/input.fasta", '-m', '../SSL-GCN/model/', '-t', "$method", '-o', "storage/app/Tasks/$task->id/$method."]);
         $process->setTimeout(3600);
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
@@ -148,7 +149,7 @@ class TaskUtils
             $fastaPath = "storage/app/Tasks/$task->id/input.fasta";
             $taskID = $task->id;
 
-            $microserviceClient = new EcotoxicologyMicroserviceClient();
+            $microserviceClient = new EcotoxicologyMicroserviceClient;
             $response = $microserviceClient->predict($fastaPath, $method);
 
             if ($response && $response['status'] == 'success') {
@@ -166,16 +167,17 @@ class TaskUtils
                     fputcsv($handle, [
                         $fasta_id,
                         $response['data']['smiles'][$index],
-                        $response['data']['predictions'][$index]
+                        $response['data']['predictions'][$index],
                     ]);
                 }
                 fclose($handle);
             } else {
-                throw new \Exception("Microservice response is not successful");
+                throw new \Exception('Microservice response is not successful');
             }
         } catch (\Exception $e) {
-            Log::error("Ecotoxicology Microservice call failed: " . $e->getMessage());
-            return null;
+            Log::error('Ecotoxicology Microservice call failed: '.$e->getMessage());
+
+            return;
         }
     }
 
@@ -186,7 +188,7 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
@@ -198,7 +200,7 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
@@ -210,7 +212,7 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
@@ -222,7 +224,7 @@ class TaskUtils
         $process->run();
 
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }

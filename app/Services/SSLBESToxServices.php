@@ -7,8 +7,8 @@ use App\Http\Requests\TasksRules;
 use App\Jobs\SSLBESToxJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
-use App\Utils\ResponseUtils;
 use App\Utils\Res\ResFactoryUtils;
+use App\Utils\ResponseUtils;
 use App\Utils\TaskUtils;
 use App\Utils\Utils;
 use Carbon\Carbon;
@@ -32,9 +32,10 @@ class SSLBESToxServices implements BaseServicesInterface
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 
@@ -57,12 +58,13 @@ class SSLBESToxServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::rules());
                 break;
             default:
-                # code...
+                // code...
                 break;
         }
 
         if ($validator->fails()) {
             $res = Utils::integradeResponseMessage(ResponseUtils::validatorErrorMessage($validator), false, 1000);
+
             return $res;
         } else {
             return true;
@@ -78,6 +80,7 @@ class SSLBESToxServices implements BaseServicesInterface
         FileUtils::createSSLBESToxResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'SSL-GCN');
         SSLBESToxJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -90,6 +93,7 @@ class SSLBESToxServices implements BaseServicesInterface
         FileUtils::createSSLBESToxResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'SSL-GCN');
         SSLBESToxJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -105,6 +109,7 @@ class SSLBESToxServices implements BaseServicesInterface
                 continue;
             }
         }
+
         return $methods;
     }
 
@@ -113,12 +118,14 @@ class SSLBESToxServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
         $methods = DAOSimpleFactory::createTasksMethodsDAO()->getSpecifyByTaskID($taskID);
         FileUtils::writeSSLBESToxResultFile($taskID, $methods);
+
         return $data;
     }
 
     public function failedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->failed($taskID);
+
         return $data;
     }
 }

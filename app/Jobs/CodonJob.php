@@ -16,9 +16,13 @@ class CodonJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $task;
+
     private $codonCode;
+
     private $methods;
+
     private $taskID;
+
     private $function;
 
     /**
@@ -49,13 +53,13 @@ class CodonJob implements ShouldQueue
      */
     public function handle()
     {
-        echo ('Running ' . $this->task->id . " Codon Task!\n");
+        echo 'Running '.$this->task->id." Codon Task!\n";
         TaskUtils::runCodonTask($this->task, $this->codonCode);
         TaskUtils::renameCodonFasta($this->task);
 
         if ($this->function == 'AmPEP') {
             FileUtils::createResultFile("Tasks/$this->taskID/", $this->methods);
-        } else if ($this->function == 'AcPEP') {
+        } elseif ($this->function == 'AcPEP') {
             FileUtils::createAcPEPResultFile("Tasks/$this->taskID/", $this->methods);
         } else {
             FileUtils::createResultFile("Tasks/$this->taskID/", $this->methods);
@@ -64,9 +68,9 @@ class CodonJob implements ShouldQueue
         FileUtils::insertSequencesAndHeaderOnResult("storage/app/Tasks/$this->taskID/", $this->methods, $this->function);
     }
 
-    public function failed(\Exception $e = null)
+    public function failed(?\Exception $e = null)
     {
-        echo ("Fail Status:" . $e);
+        echo 'Fail Status:'.$e;
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }

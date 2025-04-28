@@ -15,6 +15,7 @@ class EcotoxicologyJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $task;
+
     protected $request;
 
     public function __construct($task, $request)
@@ -35,7 +36,7 @@ class EcotoxicologyJob implements ShouldQueue
         EcotoxicologyServices::getInstance()->finishedTask($this->task->id);
     }
 
-    public function failed(\Exception $e = null)
+    public function failed(?\Exception $e = null)
     {
         EcotoxicologyServices::getInstance()->failedTask($this->task->id);
     }

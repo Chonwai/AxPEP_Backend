@@ -13,6 +13,7 @@ class TaskController extends Controller
     {
         RequestUtils::addTaskID($request);
         $res = TasksServices::getInstance()->responseSpecify($request);
+
         return $res;
     }
 
@@ -24,6 +25,7 @@ class TaskController extends Controller
 
         if ($status === true) {
             $res = TasksServices::getInstance()->responseSpecifyTaskByEmail($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -38,6 +40,7 @@ class TaskController extends Controller
 
         if ($status === true) {
             $res = TasksServices::getInstance()->downloadSpecifyClassification($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -52,6 +55,7 @@ class TaskController extends Controller
 
         if ($status === true) {
             $res = TasksServices::getInstance()->downloadSpecifyPredictionScore($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -66,6 +70,7 @@ class TaskController extends Controller
 
         if ($status === true) {
             $res = TasksServices::getInstance()->downloadSpecifyResult($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -75,18 +80,21 @@ class TaskController extends Controller
     public function countDistinctIpNDays(Request $request)
     {
         $data = TasksServices::getInstance()->countDistinctIpNDays($request);
+
         return $data;
     }
 
     public function countTasksNDays(Request $request)
     {
         $data = TasksServices::getInstance()->countTasksNDays($request);
+
         return $data;
     }
 
     public function countEachMethods(Request $request)
     {
         $data = TasksServices::getInstance()->countEachMethods($request);
+
         return $data;
     }
 }

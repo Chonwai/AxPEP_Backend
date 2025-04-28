@@ -14,6 +14,7 @@ class AmPEPController extends Controller
 
         if ($status === true) {
             $res = AmPEPServices::getInstance()->createNewTaskByFile($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -26,6 +27,7 @@ class AmPEPController extends Controller
 
         if ($status === true) {
             $res = AmPEPServices::getInstance()->createNewTaskByTextarea($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -38,6 +40,7 @@ class AmPEPController extends Controller
 
         if ($status === true) {
             $res = AmPEPServices::getInstance()->createNewTaskByFileAndCodon($request);
+
             return $res;
         } else {
             return response()->json($status, 200);

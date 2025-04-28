@@ -3,7 +3,6 @@
 namespace App\Utils\Res\Products;
 
 use App\Utils\ResponseUtils;
-use App\Utils\Res\Products\ServicesResInterface;
 use App\Utils\Utils;
 
 class ServicesResFail implements ServicesResInterface
@@ -22,15 +21,16 @@ class ServicesResFail implements ServicesResInterface
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 
     public function createServicesRes($data)
     {
-        if ($data !== NULL) {
+        if ($data !== null) {
             return Utils::integradeResponseMessage($data, true, 1);
         } else {
             return Utils::integradeResponseMessage(ResponseUtils::fail(), false, 9000);

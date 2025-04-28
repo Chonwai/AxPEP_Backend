@@ -3,7 +3,6 @@
 namespace App\Utils\Res\Products;
 
 use App\Utils\ResponseUtils;
-use App\Utils\Res\Products\ServicesResInterface;
 use App\Utils\Utils;
 
 class ServicesResUserUpdateFailed implements ServicesResInterface
@@ -22,9 +21,10 @@ class ServicesResUserUpdateFailed implements ServicesResInterface
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 

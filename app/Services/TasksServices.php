@@ -6,8 +6,8 @@ use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
 use App\Imports\AmPEPResultImport;
 use App\Utils\FileUtils;
-use App\Utils\ResponseUtils;
 use App\Utils\Res\ResFactoryUtils;
+use App\Utils\ResponseUtils;
 use App\Utils\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -30,9 +30,10 @@ class TasksServices implements BaseServicesInterface
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 
@@ -58,12 +59,13 @@ class TasksServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::rules());
                 break;
             default:
-                # code...
+                // code...
                 break;
         }
 
         if ($validator->fails()) {
             $res = Utils::integradeResponseMessage(ResponseUtils::validatorErrorMessage($validator), false, 1000);
+
             return $res;
         } else {
             return true;
@@ -94,30 +96,35 @@ class TasksServices implements BaseServicesInterface
                 $data[0]->detailed_predictions = Excel::toArray(new AmPEPResultImport, "Tasks/$request->id/hemopep60_detailed.csv", null, \Maatwebsite\Excel\Excel::CSV)[0];
             }
         }
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function responseSpecifyTaskByEmail(Request $request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->getSpecifyTaskByEmail($request);
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function downloadSpecifyClassification(Request $request)
     {
         $file = Storage::download("Tasks/$request->id/classification.csv");
+
         return $file;
     }
 
     public function downloadSpecifyPredictionScore(Request $request)
     {
         $file = Storage::download("Tasks/$request->id/score.csv");
+
         return $file;
     }
 
     public function downloadSpecifyResult(Request $request)
     {
         $file = Storage::download("Tasks/$request->id/result.csv");
+
         return $file;
     }
 
@@ -126,30 +133,35 @@ class TasksServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
         $methods = DAOSimpleFactory::createTasksMethodsDAO()->getSpecifyByTaskID($taskID);
         FileUtils::writeAmPEPResultFile($taskID, $methods);
+
         return $data;
     }
 
     public function failedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->failed($taskID);
+
         return $data;
     }
 
     public function countDistinctIpNDays($request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->countDistinctIpNDays($request);
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function countTasksNDays($request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->countTasksNDays($request);
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function countEachMethods($request)
     {
         $data = DAOSimpleFactory::createTasksDAO()->countEachMethods($request);
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 }

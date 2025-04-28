@@ -29,9 +29,10 @@ class TasksMethodsServices implements BaseServicesInterface
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 
@@ -45,12 +46,13 @@ class TasksMethodsServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::emailRules());
                 break;
             default:
-                # code...
+                // code...
                 break;
         }
 
         if ($validator->fails()) {
             $res = Utils::integradeResponseMessage(ResponseUtils::validatorErrorMessage($validator), false, 1000);
+
             return $res;
         } else {
             return true;
@@ -60,12 +62,14 @@ class TasksMethodsServices implements BaseServicesInterface
     public function responseSpecify(Request $request)
     {
         $data = DAOSimpleFactory::createTasksMethodsDAO()->getSpecify($request);
+
         return $data;
     }
 
     public function insert($request)
     {
         $data = DAOSimpleFactory::createTasksMethodsDAO()->insert($request);
+
         return $data;
     }
 
@@ -77,6 +81,7 @@ class TasksMethodsServices implements BaseServicesInterface
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.fasta');
         Storage::put("Tasks/$data->id/result.csv");
         AmPEPJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(3));
+
         return $data;
     }
 }

@@ -16,6 +16,7 @@ class AcPEPJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $task;
+
     private $request;
 
     /**
@@ -58,10 +59,10 @@ class AcPEPJob implements ShouldQueue
         AcPEPServices::getInstance()->finishedTask($this->task->id);
     }
 
-    public function failed(\Exception $e = null)
+    public function failed(?\Exception $e = null)
     {
-        echo ("Fail Status:" . $e);
-        echo (json_encode($e));
+        echo 'Fail Status:'.$e;
+        echo json_encode($e);
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }

@@ -7,8 +7,8 @@ use App\Http\Requests\TasksRules;
 use App\Jobs\HemoPepJob;
 use App\Utils\FileUtils;
 use App\Utils\RequestUtils;
-use App\Utils\ResponseUtils;
 use App\Utils\Res\ResFactoryUtils;
+use App\Utils\ResponseUtils;
 use App\Utils\TaskUtils;
 use App\Utils\Utils;
 use Carbon\Carbon;
@@ -32,9 +32,10 @@ class HemoPepServices implements BaseServicesInterface
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 
@@ -54,6 +55,7 @@ class HemoPepServices implements BaseServicesInterface
 
         if ($validator->fails()) {
             $res = Utils::integradeResponseMessage(ResponseUtils::validatorErrorMessage($validator), false, 1000);
+
             return $res;
         } else {
             return true;
@@ -63,7 +65,7 @@ class HemoPepServices implements BaseServicesInterface
     public function createNewTaskByFile(Request $request)
     {
         // 確保設置source值
-        if (!$request->has('source')) {
+        if (! $request->has('source')) {
             $request->merge(['source' => 'hemopep']);
         }
 
@@ -74,13 +76,14 @@ class HemoPepServices implements BaseServicesInterface
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'HemoPep');
         HemoPepJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function createNewTaskByTextarea(Request $request)
     {
         // 確保設置source值
-        if (!$request->has('source')) {
+        if (! $request->has('source')) {
             $request->merge(['source' => 'hemopep']);
         }
 
@@ -91,6 +94,7 @@ class HemoPepServices implements BaseServicesInterface
         FileUtils::createResultFile("Tasks/$data->id/", $methods);
         FileUtils::insertSequencesAndHeaderOnResult("../storage/app/Tasks/$data->id/", $methods, 'HemoPep');
         HemoPepJob::dispatch($data, $request->input())->delay(Carbon::now()->addSeconds(1));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -106,6 +110,7 @@ class HemoPepServices implements BaseServicesInterface
                 continue;
             }
         }
+
         return $methods;
     }
 
@@ -114,12 +119,14 @@ class HemoPepServices implements BaseServicesInterface
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
         $methods = DAOSimpleFactory::createTasksMethodsDAO()->getSpecifyByTaskID($taskID);
         FileUtils::writeHemoPepResultFile($taskID, $methods);
+
         return $data;
     }
 
     public function failedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->failed($taskID);
+
         return $data;
     }
 }

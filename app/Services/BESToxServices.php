@@ -6,8 +6,8 @@ use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
 use App\Jobs\BESToxJob;
 use App\Utils\RequestUtils;
-use App\Utils\ResponseUtils;
 use App\Utils\Res\ResFactoryUtils;
+use App\Utils\ResponseUtils;
 use App\Utils\TaskUtils;
 use App\Utils\Utils;
 use Carbon\Carbon;
@@ -31,9 +31,10 @@ class BESToxServices implements BaseServicesInterface
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 
@@ -56,12 +57,13 @@ class BESToxServices implements BaseServicesInterface
                 $validator = Validator::make($request->all(), TasksRules::rules());
                 break;
             default:
-                # code...
+                // code...
                 break;
         }
 
         if ($validator->fails()) {
             $res = Utils::integradeResponseMessage(ResponseUtils::validatorErrorMessage($validator), false, 1000);
+
             return $res;
         } else {
             return true;
@@ -75,6 +77,7 @@ class BESToxServices implements BaseServicesInterface
         TaskUtils::createTaskFolder($data);
         Storage::putFileAs("Tasks/$data->id/", $request->file('file'), 'input.smi');
         BESToxJob::dispatch($data)->delay(Carbon::now()->addSeconds(1));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -85,6 +88,7 @@ class BESToxServices implements BaseServicesInterface
         TaskUtils::createTaskFolder($data);
         Storage::disk('local')->put("Tasks/$data->id/input.smi", $request->smi);
         BESToxJob::dispatch($data)->delay(Carbon::now()->addSeconds(1));
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
@@ -100,18 +104,21 @@ class BESToxServices implements BaseServicesInterface
                 continue;
             }
         }
+
         return $methods;
     }
 
     public function finishedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->finished($taskID);
+
         return $data;
     }
 
     public function failedTask($taskID)
     {
         $data = DAOSimpleFactory::createTasksDAO()->failed($taskID);
+
         return $data;
     }
 }

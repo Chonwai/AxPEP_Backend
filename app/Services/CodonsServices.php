@@ -4,14 +4,10 @@ namespace App\Services;
 
 use App\DAO\DAOSimpleFactory;
 use App\Http\Requests\TasksRules;
-use App\Jobs\AmPEPJob;
 use App\Utils\Res\ResFactoryUtils;
 use App\Utils\ResponseUtils;
-use App\Utils\TaskUtils;
 use App\Utils\Utils;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class CodonsServices
@@ -30,9 +26,10 @@ class CodonsServices
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self;
         }
+
         return self::$_instance;
     }
 
@@ -46,12 +43,13 @@ class CodonsServices
                 $validator = Validator::make($request->all(), TasksRules::emailRules());
                 break;
             default:
-                # code...
+                // code...
                 break;
         }
 
         if ($validator->fails()) {
             $res = Utils::integradeResponseMessage(ResponseUtils::validatorErrorMessage($validator), false, 1000);
+
             return $res;
         } else {
             return true;
@@ -61,18 +59,21 @@ class CodonsServices
     public function responseAll()
     {
         $data = DAOSimpleFactory::createCodonsDAO()->getAll();
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function responseSpecify(Request $request)
     {
         $data = DAOSimpleFactory::createCodonsDAO()->getSpecify($request);
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 
     public function insert($request)
     {
         $data = DAOSimpleFactory::createCodonsDAO()->insert($request);
+
         return ResFactoryUtils::getServicesRes($data, 'fail');
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Services\BESToxServices;
 use App\Services\SSLBESToxServices;
 use App\Utils\TaskUtils;
 use Illuminate\Bus\Queueable;
@@ -16,6 +15,7 @@ class SSLBESToxJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $task;
+
     private $request;
 
     /**
@@ -45,7 +45,7 @@ class SSLBESToxJob implements ShouldQueue
     {
         foreach ($this->request['methods'] as $key => $value) {
             if ($value == true) {
-                echo ('Running ' . $this->task->id . " SSL-GCN's $key Task!\n");
+                echo 'Running '.$this->task->id." SSL-GCN's $key Task!\n";
                 TaskUtils::runSSLBESToxTask($this->task, $key);
             } else {
                 continue;
@@ -54,9 +54,9 @@ class SSLBESToxJob implements ShouldQueue
         SSLBESToxServices::getInstance()->finishedTask($this->task->id);
     }
 
-    public function failed(\Exception $e = null)
+    public function failed(?\Exception $e = null)
     {
-        echo ("Fail Status:" . $e);
+        echo 'Fail Status:'.$e;
         SSLBESToxServices::getInstance()->failedTask($this->task->id);
     }
 }

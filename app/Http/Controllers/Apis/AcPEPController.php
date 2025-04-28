@@ -14,6 +14,7 @@ class AcPEPController extends Controller
 
         if ($status === true) {
             $res = AcPEPServices::getInstance()->createNewTaskByFile($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -26,6 +27,7 @@ class AcPEPController extends Controller
 
         if ($status === true) {
             $res = AcPEPServices::getInstance()->createNewTaskByTextarea($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -38,6 +40,7 @@ class AcPEPController extends Controller
 
         if ($status === true) {
             $res = AcPEPServices::getInstance()->createNewTaskByFileAndCodon($request);
+
             return $res;
         } else {
             return response()->json($status, 200);

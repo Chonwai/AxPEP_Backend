@@ -36,6 +36,7 @@ class AcPEPFastaFormatRule implements Rule
         }
         if ($flag !== true) {
             $this->error = $flag;
+
             return false;
         } else {
             return $flag;

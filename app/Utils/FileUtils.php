@@ -7,34 +7,33 @@ use App\Imports\AmPEPResultImport;
 use App\Imports\OutImport;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Log;
 
 class FileUtils
 {
     public static function createResultFile($path, $methods)
     {
         $methodString = self::prepareMethodString($methods);
-        Storage::put($path . 'classification.csv', 'id,' . $methodString . "number_of_positives,sequence\n");
-        Storage::put($path . 'score.csv', 'id,' . $methodString . "product_of_probability,sequence\n");
+        Storage::put($path.'classification.csv', 'id,'.$methodString."number_of_positives,sequence\n");
+        Storage::put($path.'score.csv', 'id,'.$methodString."product_of_probability,sequence\n");
     }
 
     public static function createAcPEPResultFile($path, $methods)
     {
         $methodString = self::prepareMethodString($methods);
-        Storage::put($path . 'classification.csv', 'id,' . $methodString . "sequence\n");
-        Storage::put($path . 'score.csv', "id,classification,score,sequence\n");
+        Storage::put($path.'classification.csv', 'id,'.$methodString."sequence\n");
+        Storage::put($path.'score.csv', "id,classification,score,sequence\n");
     }
 
     public static function createSSLBESToxResultFile($path, $methods)
     {
         $methodString = self::prepareMethodString($methods);
-        Storage::put($path . 'classification.csv', 'id,' . $methodString . "smiles\n");
+        Storage::put($path.'classification.csv', 'id,'.$methodString."smiles\n");
     }
 
     public static function createEcotoxicologyResultFile($path, $methods)
     {
         $methodString = self::prepareMethodString($methods);
-        Storage::put($path . 'classification.csv', 'id,' . $methodString . "smiles\n");
+        Storage::put($path.'classification.csv', 'id,'.$methodString."smiles\n");
     }
 
     public static function insertSequencesAndHeaderOnResult($path, $methods, $function = 'AmPEP')
@@ -51,9 +50,11 @@ class FileUtils
         } elseif ($application === 'AmPEP') {
             $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
             $ampActivityPrediction = Excel::toArray(new AmPEPResultImport, "Tasks/$id/amp_activity_prediction.csv", null, \Maatwebsite\Excel\Excel::CSV);
+
             return [$classifications, $scores, $ampActivityPrediction];
         } else {
             $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
+
             return [$classifications, $scores];
         }
     }
@@ -61,6 +62,7 @@ class FileUtils
     public static function loadClassificationsFile($id, $methods)
     {
         $classifications = Excel::toArray(new AmPEPResultImport, "Tasks/$id/classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
+
         return $classifications;
     }
 
@@ -117,8 +119,8 @@ class FileUtils
     /**
      * 寫入HemoPep結果文件
      *
-     * @param string $taskID 任務ID
-     * @param array $methods 任務方法
+     * @param  string  $taskID  任務ID
+     * @param  array  $methods  任務方法
      * @return void
      */
     public static function writeHemoPepResultFile($taskID, $methods)
@@ -140,7 +142,9 @@ class FileUtils
 
                 // 跳過標題行，處理每一行數據
                 for ($i = 1; $i < count($lines); $i++) {
-                    if (empty(trim($lines[$i]))) continue;
+                    if (empty(trim($lines[$i]))) {
+                        continue;
+                    }
 
                     $fields = str_getcsv($lines[$i]);
                     if (count($fields) >= 5) { // 確保有足夠的欄位
@@ -173,7 +177,7 @@ class FileUtils
                 throw new \Exception("找不到HemoPep詳細結果文件: $detailedCsvPath");
             }
         } catch (\Exception $e) {
-            \Log::error("寫入HemoPep結果文件錯誤: " . $e->getMessage());
+            \Log::error('寫入HemoPep結果文件錯誤: '.$e->getMessage());
             throw $e;
         }
     }
@@ -181,22 +185,25 @@ class FileUtils
     public static function matchingAmPEP($id, $method, $classifications, $scores, $ampActivityPrediction)
     {
         $fResult = Excel::toArray(new OutImport, "Tasks/$id/$method.out", null, \Maatwebsite\Excel\Excel::TSV);
-        $symbol = " ";
+        $symbol = ' ';
         foreach ($fResult[0] as $key => $value) {
             $result = explode($symbol, $value[0]);
             $classifications[0] = array_map(function ($value) use ($result, $method) {
                 if ($value['id'] == $result[0]) {
                     $value["$method"] = $result[1];
                 }
+
                 return $value;
             }, $classifications[0]);
             $scores[0] = array_map(function ($value) use ($result, $method) {
                 if ($value['id'] == $result[0]) {
                     $value["$method"] = $result[2];
                 }
+
                 return $value;
             }, $scores[0]);
         }
+
         return [$classifications, $scores];
     }
 
@@ -209,9 +216,11 @@ class FileUtils
                 if ($val['id'] === $value[0]) {
                     $val["$method"] = $value[1];
                 }
+
                 return $val;
             }, $classifications[0]);
         }
+
         return $classifications;
     }
 
@@ -221,16 +230,18 @@ class FileUtils
         foreach ($fResult[0] as $key => $value) {
             $scores[0] = array_map(function ($val) use ($value) {
                 if ($val['id'] === $value[0]) {
-                    $val["score"] = $value[2];
+                    $val['score'] = $value[2];
                     if ($value[1] != '') {
-                        $val["classification"] = $value[1];
+                        $val['classification'] = $value[1];
                     } else {
-                        $val["classification"] = '0';
+                        $val['classification'] = '0';
                     }
                 }
+
                 return $val;
             }, $scores[0]);
         }
+
         return $scores;
     }
 
@@ -243,16 +254,18 @@ class FileUtils
                 if ($val['id'] === $value[0]) {
                     $val["$method"] = strval($value[2]);
                 }
+
                 return $val;
             }, $classifications[0]);
         }
+
         return $classifications;
     }
 
     public static function matchingEcotoxicologyClassification($id, $method, $classifications)
     {
         $resultPath = "Tasks/$id/$method.result.csv";
-        if (!Storage::exists($resultPath)) {
+        if (! Storage::exists($resultPath)) {
             throw new \Illuminate\Contracts\Filesystem\FileNotFoundException("File [$resultPath] does not exist and can therefore not be imported.");
         }
 
@@ -275,11 +288,12 @@ class FileUtils
         $classifications[0] = array_map(function ($value) use ($methods) {
             $numberOfPositives = '0';
             foreach ($methods as $key => $method) {
-                if ($value["$method->method"] == "1") {
+                if ($value["$method->method"] == '1') {
                     $numberOfPositives++;
                 }
             }
             $value['number_of_positives'] = $numberOfPositives;
+
             return $value;
         }, $classifications[0]);
 
@@ -289,6 +303,7 @@ class FileUtils
                 $productOfProbability = $productOfProbability * $value["$method->method"];
             }
             $value['product_of_probability'] = $productOfProbability;
+
             return $value;
         }, $scores[0]);
 
@@ -299,8 +314,9 @@ class FileUtils
     {
         $methodString = '';
         foreach ($methods as $key => $value) {
-            $methodString = $methodString . "$value,";
+            $methodString = $methodString."$value,";
         }
+
         return $methodString;
     }
 
@@ -310,15 +326,15 @@ class FileUtils
         foreach ($methods as $key => $value) {
             array_push($methodArray, '');
         }
-        $fInput = fopen($path . 'input.fasta', 'r');
-        $fClassification = fopen($path . 'classification.csv', 'a+');
+        $fInput = fopen($path.'input.fasta', 'r');
+        $fClassification = fopen($path.'classification.csv', 'a+');
 
         switch ($function) {
             case 'AmPEP':
-                $fScore = fopen($path . 'score.csv', 'a+');
+                $fScore = fopen($path.'score.csv', 'a+');
                 break;
             case 'AcPEP':
-                $fScore = fopen($path . 'score.csv', 'a+');
+                $fScore = fopen($path.'score.csv', 'a+');
                 break;
             case 'BESTox':
                 $fScore = null;
@@ -330,7 +346,7 @@ class FileUtils
                 $fScore = null;
                 break;
             default:
-                $fScore = fopen($path . 'score.csv', 'a+');
+                $fScore = fopen($path.'score.csv', 'a+');
                 break;
         }
 
@@ -344,7 +360,7 @@ class FileUtils
         while ($line = fgets($fInput)) {
             $i++;
             if ($i % 2 == 1) {
-                $id = ltrim($line, ">");
+                $id = ltrim($line, '>');
                 $id = ltrim(str_replace("\r\n", '', $id));
                 $id = ltrim(str_replace("\n", '', $id));
                 $id = ltrim(str_replace(PHP_EOL, '', $id));

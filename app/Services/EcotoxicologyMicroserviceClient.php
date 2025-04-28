@@ -13,7 +13,7 @@ class EcotoxicologyMicroserviceClient
     public function __construct()
     {
         $this->client = new Client([
-            'base_uri' => env('ECOTOXICOLOGY_MICROSERVICE_BASE_URL', 'http://127.0.0.1:8890')
+            'base_uri' => env('ECOTOXICOLOGY_MICROSERVICE_BASE_URL', 'http://127.0.0.1:8890'),
         ]);
     }
 
@@ -21,14 +21,14 @@ class EcotoxicologyMicroserviceClient
     {
         try {
             $relativePath = str_replace('storage/app/', '', $fastaPath);
-            if (!Storage::exists($relativePath)) {
+            if (! Storage::exists($relativePath)) {
                 throw new \Exception("File not found: $relativePath");
             }
             $fastaContent = Storage::get($relativePath);
             $response = $this->client->post('/api/predict', [
                 'json' => [
                     'fasta' => $fastaContent,
-                    'model_type' => $modelType
+                    'model_type' => $modelType,
                 ],
             ]);
 
@@ -36,8 +36,9 @@ class EcotoxicologyMicroserviceClient
 
             return $data;
         } catch (\Exception $e) {
-            Log::error("Ecotoxicology Microservice call failed: " . $e->getMessage());
-            return null;
+            Log::error('Ecotoxicology Microservice call failed: '.$e->getMessage());
+
+            return;
         }
     }
 }

@@ -6,7 +6,6 @@ use App\Utils\Res\Products\ServicesResFail;
 use App\Utils\Res\Products\ServicesResSuccess;
 use App\Utils\Res\Products\ServicesResUnknownProblems;
 use App\Utils\Res\Products\ServicesResUserUpdateFailed;
-use App\Utils\Res\ResAbstractFactory;
 
 class ResFactoryUtils extends ResAbstractFactory
 {
@@ -28,7 +27,7 @@ class ResFactoryUtils extends ResAbstractFactory
                 $res = ServicesResUserUpdateFailed::getInstance()->createServicesRes($data);
                 break;
             default:
-                # code...
+                // code...
                 break;
         }
 

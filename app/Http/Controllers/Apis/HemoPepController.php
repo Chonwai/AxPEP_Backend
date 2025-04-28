@@ -11,7 +11,6 @@ class HemoPepController extends Controller
     /**
      * 通過文件創建新任務
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function createNewTaskByFile(Request $request)
@@ -22,13 +21,13 @@ class HemoPepController extends Controller
         }
 
         $result = HemoPepServices::getInstance()->createNewTaskByFile($request);
+
         return response()->json($result);
     }
 
     /**
      * 通過文本框創建新任務
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function createNewTaskByTextarea(Request $request)
@@ -39,6 +38,7 @@ class HemoPepController extends Controller
         }
 
         $result = HemoPepServices::getInstance()->createNewTaskByTextarea($request);
+
         return response()->json($result);
     }
 }

@@ -14,6 +14,7 @@ class EcotoxicologyController extends Controller
 
         if ($status === true) {
             $res = EcotoxicologyServices::getInstance()->createNewTaskByFile($request);
+
             return $res;
         } else {
             return response()->json($status, 200);
@@ -26,6 +27,7 @@ class EcotoxicologyController extends Controller
 
         if ($status === true) {
             $res = EcotoxicologyServices::getInstance()->createNewTaskByTextarea($request);
+
             return $res;
         } else {
             return response()->json($status, 200);

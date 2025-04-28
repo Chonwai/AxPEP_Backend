@@ -4,10 +4,10 @@ use App\Http\Controllers\Apis\AcPEPController;
 use App\Http\Controllers\Apis\AmPEPController;
 use App\Http\Controllers\Apis\BESToxController;
 use App\Http\Controllers\Apis\CodonController;
-use App\Http\Controllers\Apis\SSLBestoxController;
 use App\Http\Controllers\Apis\EcotoxicologyController;
-use App\Http\Controllers\Apis\TaskController;
 use App\Http\Controllers\Apis\HemoPepController;
+use App\Http\Controllers\Apis\SSLBestoxController;
+use App\Http\Controllers\Apis\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 

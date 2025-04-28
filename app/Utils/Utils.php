@@ -10,6 +10,7 @@ class Utils
         $response['status'] = $status;
         $response['code'] = $code;
         $response['message'] = $message;
+
         return $response;
     }
 }

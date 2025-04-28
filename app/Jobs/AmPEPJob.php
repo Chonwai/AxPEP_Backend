@@ -15,6 +15,7 @@ class AmPEPJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $task;
+
     private $request;
 
     /**
@@ -62,9 +63,9 @@ class AmPEPJob implements ShouldQueue
         TasksServices::getInstance()->finishedTask($this->task->id);
     }
 
-    public function failed(\Throwable $exception = null)
+    public function failed(?\Throwable $exception = null)
     {
-        echo "Fail Status: " . $exception->getMessage();
+        echo 'Fail Status: '.$exception->getMessage();
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }

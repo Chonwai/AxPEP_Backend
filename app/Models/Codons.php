@@ -28,7 +28,7 @@ class Codons extends Model
      * @var array
      */
     protected $hidden = [
-        // 
+        //
     ];
 
     /**
@@ -47,6 +47,6 @@ class Codons extends Model
      * @var array
      */
     protected $attributes = [
-        // 
+        //
     ];
 }

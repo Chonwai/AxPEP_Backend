@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Services\BERTHemoPep60MicroserviceClient;
-use App\Services\TasksServices;
 use App\Services\HemoPepServices;
+use App\Services\TasksServices;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,6 +18,7 @@ class HemoPepJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $task;
+
     private $request;
 
     /**
@@ -30,8 +31,6 @@ class HemoPepJob implements ShouldQueue
     /**
      * 創建新的任務實例
      *
-     * @param $task
-     * @param $request
      * @return void
      */
     public function __construct($task, $request)
@@ -61,7 +60,7 @@ class HemoPepJob implements ShouldQueue
 
             HemoPepServices::getInstance()->finishedTask($this->task->id);
         } catch (\Exception $e) {
-            Log::error("HemoPep任務失敗: " . $e->getMessage());
+            Log::error('HemoPep任務失敗: '.$e->getMessage());
             HemoPepServices::getInstance()->failedTask($this->task->id);
             throw $e;
         }
@@ -76,7 +75,7 @@ class HemoPepJob implements ShouldQueue
         $fastaContent = Storage::disk('local')->get("Tasks/{$this->task->id}/input.fasta");
 
         // 調用微服務
-        $client = new BERTHemoPep60MicroserviceClient();
+        $client = new BERTHemoPep60MicroserviceClient;
         $result = $client->predict($fastaContent);
 
         // 將結果寫入文件
@@ -89,11 +88,11 @@ class HemoPepJob implements ShouldQueue
         // 確保文件存在且路徑正確
         $detailedCsvPath = storage_path("app/Tasks/{$this->task->id}/hemopep60_detailed.csv");
 
-        if (!file_exists($detailedCsvPath)) {
-            \Log::warning("CSV文件未找到，嘗試替代路徑");
+        if (! file_exists($detailedCsvPath)) {
+            \Log::warning('CSV文件未找到，嘗試替代路徑');
             // 檢查檔案是否存在於任務目錄
             $dirContents = scandir(storage_path("app/Tasks/{$this->task->id}"));
-            \Log::info("目錄內容: " . implode(", ", $dirContents));
+            \Log::info('目錄內容: '.implode(', ', $dirContents));
         }
     }
 
@@ -117,12 +116,11 @@ class HemoPepJob implements ShouldQueue
     /**
      * 任務失敗處理
      *
-     * @param \Throwable $exception
      * @return void
      */
-    public function failed(\Throwable $exception = null)
+    public function failed(?\Throwable $exception = null)
     {
-        Log::error("HemoPep失敗狀態: " . $exception->getMessage());
+        Log::error('HemoPep失敗狀態: '.$exception->getMessage());
         TasksServices::getInstance()->failedTask($this->task->id);
     }
 }
