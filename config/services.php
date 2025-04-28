@@ -31,7 +31,7 @@ return [
     ],
 
     'bert_hemopep60' => [
-        'url' => env('BERT_HEMOPEP60_MICROSERVICE_BASE_URL', 'http://localhost:8000'),
+        'url' => env('BERT_HEMOPEP60_MICROSERVICE_BASE_URL', 'http://localhost:9001'),
     ],
 
 ];

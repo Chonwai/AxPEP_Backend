@@ -15,7 +15,7 @@ class BERTHemoPep60MicroserviceClient
     {
         $this->client = new Client();
         // 從配置中獲取URL，或使用默認值
-        $this->baseUrl = env('BERT_HEMOPEP60_MICROSERVICE_BASE_URL', 'http://localhost:8000');
+        $this->baseUrl = env('BERT_HEMOPEP60_MICROSERVICE_BASE_URL', 'http://localhost:9001');
     }
 
     /**
