@@ -1,6 +1,7 @@
+# PHP 8.1 FPM（自動支援多架構包括ARM）
 FROM php:8.1-fpm
 
-# 安裝依賴 (移除nginx)
+# 安裝依賴 (移除nginx，添加PostgreSQL支持)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -8,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    libpq-dev \
     zip \
     unzip \
     supervisor
@@ -15,8 +17,8 @@ RUN apt-get update && apt-get install -y \
 # 清理apt緩存
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 安裝PHP擴展
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+# 安裝PHP擴展（支持MySQL和PostgreSQL）
+RUN docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip
 
 # 安裝Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
