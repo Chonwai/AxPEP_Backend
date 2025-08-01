@@ -1,0 +1,45 @@
+FROM php:8.1-cli
+
+# 安裝依賴
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip
+
+# 清理apt緩存
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 安裝PHP擴展
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+
+# 安裝Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# 設置工作目錄
+WORKDIR /var/www/html
+
+# 配置Git安全目錄
+RUN git config --global --add safe.directory /var/www/html
+
+# 複製所有文件
+COPY . .
+
+# 安裝依賴
+RUN composer install --no-interaction --optimize-autoloader
+
+# 設置PHP配置
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
+
+# 設置權限
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# 切換到www-data用戶
+USER www-data
+
+# 運行隊列工作器
+CMD ["php", "artisan", "queue:work", "redis", "--sleep=3", "--tries=3", "--max-time=3600"]

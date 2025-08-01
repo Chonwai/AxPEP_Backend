@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: axpep-backend
+    container_name: axpep-app
+    restart: unless-stopped
+    volumes:
+      - ../:/var/www/html
+      - ../storage:/var/www/html/storage
+      - ../.env:/var/www/html/.env
+    ports:
+      - "9000:9000"  # 暴露PHP-FPM端口
+    depends_on:
+      - redis
+    networks:
+      - axpep-network
+    environment:
+      - REDIS_HOST=redis
+
+  queue-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    image: axpep-backend-worker
+    container_name: axpep-worker
+    restart: unless-stopped
+    volumes:
+      - ../:/var/www/html
+      - ../storage:/var/www/html/storage
+      - ../.env:/var/www/html/.env
+    depends_on:
+      - redis
+    networks:
+      - axpep-network
+    environment:
+      - REDIS_HOST=redis
+
+  redis:
+    image: redis:alpine
+    container_name: axpep-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - axpep-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  axpep-network:
+    driver: bridge
