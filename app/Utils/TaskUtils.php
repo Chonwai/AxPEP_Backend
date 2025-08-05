@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use App\Services\AmPEPMicroserviceClient;
 use App\Services\AmpRegressionECSAPredictMicroserviceClient;
 use App\Services\EcotoxicologyMicroserviceClient;
 use Illuminate\Support\Facades\Log;
@@ -53,6 +54,62 @@ class TaskUtils
         // executes after the command finishes
         if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
+        }
+    }
+
+    /**
+     * 使用AmPEP微服務進行預測（新方法）
+     * 遵循現有微服務調用模式，提供向後兼容的輸出格式
+     */
+    public static function runAmPEPMicroservice($task)
+    {
+        try {
+            $fastaPath = "storage/app/Tasks/$task->id/input.fasta";
+            $taskID = $task->id;
+
+            $microserviceClient = new AmPEPMicroserviceClient;
+            $response = $microserviceClient->predict($fastaPath, $taskID);
+
+            if ($response && $response['status'] == 'success') {
+                // 將微服務響應轉換為現有的.out文件格式，保持向後兼容
+                self::writeAmPEPMicroserviceResults($task->id, $response['data']);
+                Log::info("AmPEP微服務預測完成，TaskID: {$taskID}");
+            } else {
+                throw new \Exception('AmPEP微服務返回失敗狀態');
+            }
+        } catch (\Exception $e) {
+            Log::error("AmPEP微服務調用失敗，TaskID: {$task->id}, Error: ".$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 將微服務響應轉換為現有的.out文件格式
+     * 保持與現有FileUtils的兼容性
+     */
+    private static function writeAmPEPMicroserviceResults($taskId, $data)
+    {
+        try {
+            $outputPath = storage_path("app/Tasks/$taskId/ampep.out");
+            $content = '';
+
+            // 根據微服務響應格式構建輸出內容
+            if (isset($data) && is_array($data)) {
+                foreach ($data as $sequence) {
+                    if (isset($sequence['sequence_name'], $sequence['prediction'], $sequence['probability'])) {
+                        // 格式：sequence_name prediction probability
+                        $content .= "{$sequence['sequence_name']} {$sequence['prediction']} {$sequence['probability']}\n";
+                    }
+                }
+            }
+
+            // 寫入文件，保持與現有格式一致
+            file_put_contents($outputPath, $content);
+            Log::info("AmPEP微服務結果已寫入文件: {$outputPath}");
+
+        } catch (\Exception $e) {
+            Log::error("寫入AmPEP微服務結果失敗，TaskID: {$taskId}, Error: ".$e->getMessage());
+            throw $e;
         }
     }
 

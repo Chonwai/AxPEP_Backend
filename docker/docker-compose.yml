@@ -40,7 +40,7 @@ services:
     container_name: axpep-nginx
     restart: unless-stopped
     ports:
-      - "80:80"  # 生產環境HTTP端口
+      - "8000:80"  # 主機8000端口映射到容器80端口
     volumes:
       - ../public:/var/www/html/public
       - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf
@@ -103,6 +103,7 @@ services:
     restart: unless-stopped
     volumes:
       - redis-data:/data
+      - ./redis/redis.conf:/etc/redis/redis.conf:ro
     networks:
       - axpep-network
     healthcheck:
@@ -117,10 +118,7 @@ services:
           memory: 512M
         reservations:
           memory: 256M
-    command: >
-      sh -c "echo 'maxmemory 256mb' >> /usr/local/etc/redis/redis.conf &&
-             echo 'maxmemory-policy allkeys-lru' >> /usr/local/etc/redis/redis.conf &&
-             redis-server /usr/local/etc/redis/redis.conf"
+    command: redis-server /etc/redis/redis.conf
 
 volumes:
   redis-data:

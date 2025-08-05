@@ -34,4 +34,9 @@ return [
         'url' => env('BERT_HEMOPEP60_MICROSERVICE_BASE_URL', 'http://localhost:9001'),
     ],
 
+    'ampep' => [
+        'url' => env('AMPEP_MICROSERVICE_BASE_URL', 'http://localhost:8001'),
+        'timeout' => env('AMPEP_MICROSERVICE_TIMEOUT', 3600),
+    ],
+
 ];
