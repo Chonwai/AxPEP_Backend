@@ -37,9 +37,9 @@ class TasksDAOFactory implements BaseDAOFactory
             'id' => Str::uuid()->toString(),
             'email' => $request->email,
             'action' => 'running',
-            'source' => $request->source,
-            'description' => $request->description,
-            'application' => $request->application,
+            'source' => $request->source ?? 'web',
+            'description' => $request->description ?? null,
+            'application' => $request->application ?? 'AmPEP',
             'ip' => $request->ip(),
         ]);
 
