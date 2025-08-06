@@ -53,10 +53,13 @@ class AmPEPJob implements ShouldQueue
                     if ($useAmPEPMicroservice) {
                         try {
                             // 嘗試使用微服務
+                            Log::info("嘗試使用AmPEP微服務，TaskID: {$this->task->id}");
                             TaskUtils::runAmPEPMicroservice($this->task);
+                            Log::info("AmPEP微服務調用成功，TaskID: {$this->task->id}");
                         } catch (\Exception $e) {
                             // 微服務失敗時，回退到本地R腳本
-                            Log::warning('AmPEP微服務調用失敗，回退到本地R腳本: '.$e->getMessage());
+                            Log::error("AmPEP微服務調用失敗，回退到本地R腳本，TaskID: {$this->task->id}, 錯誤: {$e->getMessage()}");
+                            Log::error("微服務URL: ".env('AMPEP_MICROSERVICE_BASE_URL', 'not_set'));
                             TaskUtils::runAmPEPTask($this->task);
                         }
                     } else {
