@@ -133,6 +133,57 @@ class TaskUtils
 
     public static function runAmpRegressionEcSaPredictMicroservice($task)
     {
+        // 可配置的AMP Regression實現：V2 JSON API優先，V1文件傳輸作為後備
+        $useV2API = env('USE_AMP_REGRESSION_V2_API', true);
+
+        if ($useV2API) {
+            try {
+                Log::info("嘗試使用AMP Regression V2 JSON API，TaskID: {$task->id}");
+                self::runAmpRegressionEcSaPredictMicroserviceV2($task);
+                Log::info("AMP Regression V2 API調用成功，TaskID: {$task->id}");
+
+                return;
+            } catch (\Exception $e) {
+                // V2 API失敗時，回退到V1文件傳輸
+                Log::error("AMP Regression V2 API調用失敗，回退到V1文件傳輸，TaskID: {$task->id}, 錯誤: {$e->getMessage()}");
+                Log::error('V2 API URL: '.env('AMP_REGRESSION_EC_SA_PREDICT_BASE_URL', 'not_set'));
+            }
+        }
+
+        // 使用V1文件傳輸實現
+        self::runAmpRegressionEcSaPredictMicroserviceV1($task);
+    }
+
+    /**
+     * AMP Regression EC SA Predict V2 實現 (JSON API)
+     */
+    public static function runAmpRegressionEcSaPredictMicroserviceV2($task)
+    {
+        try {
+            // 1. 讀取並解析FASTA文件
+            $fastaPath = storage_path("app/Tasks/$task->id/input.fasta");
+            $sequences = self::parseFastaFile($fastaPath);
+
+            // 2. 調用V2 JSON API
+            $microserviceClient = new \App\Services\AmpRegressionECSAPredictMicroserviceClientV2;
+            $result = $microserviceClient->predictSequences($task->id, $sequences);
+
+            // 3. 直接處理JSON結果，生成CSV文件
+            self::saveAmpRegressionResults($task->id, $result['predictions']);
+
+            Log::info("AMP Regression V2 prediction completed for task: {$task->id}");
+
+        } catch (\Exception $e) {
+            Log::error("AMP Regression V2 failed for task {$task->id}: ".$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * AMP Regression EC SA Predict V1 實現 (文件傳輸)
+     */
+    public static function runAmpRegressionEcSaPredictMicroserviceV1($task)
+    {
         try {
             $fastaPath = "storage/app/Tasks/$task->id/input.fasta";
             $taskID = $task->id;
@@ -152,9 +203,74 @@ class TaskUtils
             $process->setTimeout(3600);
             $process->run();
         } catch (\Exception $e) {
-            Log::error('AMP Regression Microservice call failed: '.$e->getMessage());
+            Log::error('AMP Regression V1 Microservice call failed: '.$e->getMessage());
+            throw $e;
+        }
+    }
 
-            return;
+    /**
+     * 解析FASTA文件為序列數組
+     */
+    private static function parseFastaFile($fastaPath)
+    {
+        $content = file_get_contents($fastaPath);
+        $sequences = [];
+        $currentId = null;
+        $currentSequence = '';
+
+        foreach (explode("\n", $content) as $line) {
+            $line = trim($line);
+            if (strpos($line, '>') === 0) {
+                // 保存上一個序列
+                if ($currentId !== null) {
+                    $sequences[] = [
+                        'id' => $currentId,
+                        'sequence' => $currentSequence,
+                    ];
+                }
+                // 開始新序列
+                $currentId = substr($line, 1);
+                $currentSequence = '';
+            } else {
+                $currentSequence .= $line;
+            }
+        }
+
+        // 保存最後一個序列
+        if ($currentId !== null) {
+            $sequences[] = [
+                'id' => $currentId,
+                'sequence' => $currentSequence,
+            ];
+        }
+
+        return $sequences;
+    }
+
+    /**
+     * 保存AMP Regression預測結果為CSV文件
+     */
+    private static function saveAmpRegressionResults($taskId, $predictions)
+    {
+        try {
+            $csvData = "id,sequence,ec_predicted_MIC_μM,sa_predicted_MIC_μM\n";
+
+            foreach ($predictions as $prediction) {
+                $csvData .= "{$prediction['id']},{$prediction['sequence']},{$prediction['ec_predicted_MIC_μM']},{$prediction['sa_predicted_MIC_μM']}\n";
+            }
+
+            $resultPath = storage_path("app/Tasks/$taskId/amp_activity_prediction.csv");
+            file_put_contents($resultPath, $csvData);
+
+            if (app()->bound('log')) {
+                Log::info("AMP Regression V2 結果已保存: {$resultPath}，預測數量: ".count($predictions));
+            }
+
+        } catch (\Exception $e) {
+            if (app()->bound('log')) {
+                Log::error("保存AMP Regression V2結果失敗，TaskID: {$taskId}, Error: ".$e->getMessage());
+            }
+            throw $e;
         }
     }
 
