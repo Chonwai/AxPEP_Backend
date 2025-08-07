@@ -59,7 +59,7 @@ class AmPEPJob implements ShouldQueue
                         } catch (\Exception $e) {
                             // 微服務失敗時，回退到本地R腳本
                             Log::error("AmPEP微服務調用失敗，回退到本地R腳本，TaskID: {$this->task->id}, 錯誤: {$e->getMessage()}");
-                            Log::error("微服務URL: ".env('AMPEP_MICROSERVICE_BASE_URL', 'not_set'));
+                            Log::error('微服務URL: '.env('AMPEP_MICROSERVICE_BASE_URL', 'not_set'));
                             TaskUtils::runAmPEPTask($this->task);
                         }
                     } else {

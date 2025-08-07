@@ -91,21 +91,39 @@ class TaskUtils
     {
         try {
             $outputPath = storage_path("app/Tasks/$taskId/ampep.out");
+
+            // 讀取原始FASTA文件以獲取正確的序列名稱順序
+            $fastaPath = storage_path("app/Tasks/$taskId/input.fasta");
+            $fastaContent = file_get_contents($fastaPath);
+            $fastaSequenceNames = [];
+
+            // 解析FASTA文件獲取序列名稱
+            $lines = explode("\n", $fastaContent);
+            foreach ($lines as $line) {
+                if (strpos($line, '>') === 0) {
+                    $sequenceName = trim(substr($line, 1));
+                    $fastaSequenceNames[] = $sequenceName;
+                }
+            }
+
             $content = '';
 
-            // 根據微服務響應格式構建輸出內容
+            // 根據微服務響應格式構建輸出內容，但使用原始FASTA的序列名稱
             if (isset($data) && is_array($data)) {
-                foreach ($data as $sequence) {
-                    if (isset($sequence['sequence_name'], $sequence['prediction'], $sequence['probability'])) {
+                foreach ($data as $index => $sequence) {
+                    if (isset($sequence['prediction'], $sequence['probability'])) {
+                        // 使用原始FASTA文件中的序列名稱，而不是微服務返回的名稱
+                        $originalSequenceName = isset($fastaSequenceNames[$index]) ? $fastaSequenceNames[$index] : "sequence_$index";
+
                         // 格式：sequence_name prediction probability
-                        $content .= "{$sequence['sequence_name']} {$sequence['prediction']} {$sequence['probability']}\n";
+                        $content .= "{$originalSequenceName} {$sequence['prediction']} {$sequence['probability']}\n";
                     }
                 }
             }
 
             // 寫入文件，保持與現有格式一致
             file_put_contents($outputPath, $content);
-            Log::info("AmPEP微服務結果已寫入文件: {$outputPath}");
+            Log::info("AmPEP微服務結果已寫入文件: {$outputPath}，處理了".count($fastaSequenceNames).'個序列');
 
         } catch (\Exception $e) {
             Log::error("寫入AmPEP微服務結果失敗，TaskID: {$taskId}, Error: ".$e->getMessage());
