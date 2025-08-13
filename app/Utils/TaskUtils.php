@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use App\Services\AmPEP30MicroserviceClient;
 use App\Services\AmPEPMicroserviceClient;
 use App\Services\AmpRegressionECSAPredictMicroserviceClient;
 use App\Services\EcotoxicologyMicroserviceClient;
@@ -54,6 +55,128 @@ class TaskUtils
         // executes after the command finishes
         if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
+        }
+    }
+
+    /**
+     * 使用 AmPEP30 微服務（RF）進行預測並寫出 rfampep30.out
+     */
+    public static function runRFAmPEP30Microservice($task)
+    {
+        try {
+            $fastaPath = storage_path("app/Tasks/$task->id/input.fasta");
+            $fastaContent = file_get_contents($fastaPath);
+            if ($fastaContent === false) {
+                throw new \Exception("Failed to read FASTA file: $fastaPath");
+            }
+
+            $client = new AmPEP30MicroserviceClient;
+            $results = $client->predictFasta($fastaContent, 'rf');
+
+            self::writeAmPEP30MicroserviceResults($task->id, 'rfampep30', $results);
+            Log::info("RFAmPEP30 microservice prediction completed, TaskID: {$task->id}");
+        } catch (\Exception $e) {
+            Log::error("RFAmPEP30 microservice failed, TaskID: {$task->id}, Error: ".$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 使用 AmPEP30 微服務（CNN）進行預測並寫出 deepampep30.out
+     */
+    public static function runDeepAmPEP30Microservice($task)
+    {
+        try {
+            $fastaPath = storage_path("app/Tasks/$task->id/input.fasta");
+            $fastaContent = file_get_contents($fastaPath);
+            if ($fastaContent === false) {
+                throw new \Exception("Failed to read FASTA file: $fastaPath");
+            }
+
+            $client = new AmPEP30MicroserviceClient;
+            $results = $client->predictFasta($fastaContent, 'cnn');
+
+            self::writeAmPEP30MicroserviceResults($task->id, 'deepampep30', $results);
+            Log::info("DeepAmPEP30 microservice prediction completed, TaskID: {$task->id}");
+        } catch (\Exception $e) {
+            Log::error("DeepAmPEP30 microservice failed, TaskID: {$task->id}, Error: ".$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 將 AmPEP30 微服務結果寫為 <method>.out（空白分隔三欄）以保持向後相容
+     */
+    private static function writeAmPEP30MicroserviceResults($taskId, string $method, array $data): void
+    {
+        try {
+            $outputPath = storage_path("app/Tasks/$taskId/$method.out");
+
+            // 從 FASTA 取得正確的序列名稱順序
+            $fastaPath = storage_path("app/Tasks/$taskId/input.fasta");
+            $fastaContent = file_get_contents($fastaPath);
+            if ($fastaContent === false) {
+                throw new \Exception("Failed to read FASTA file: $fastaPath");
+            }
+
+            $fastaSequenceNames = [];
+            foreach (explode("\n", $fastaContent) as $line) {
+                if (strpos($line, '>') === 0) {
+                    $fastaSequenceNames[] = trim(substr($line, 1));
+                }
+            }
+
+            // 構建 name -> payload 的索引，若微服務有回傳 name，可用來對齊
+            $nameToPayload = [];
+            foreach ($data as $payload) {
+                if (is_array($payload) && isset($payload['name']) && is_string($payload['name'])) {
+                    $nameToPayload[$payload['name']] = $payload;
+                }
+            }
+
+            $lines = [];
+            foreach ($fastaSequenceNames as $index => $sequenceName) {
+                $payload = null;
+                if (isset($nameToPayload[$sequenceName])) {
+                    $payload = $nameToPayload[$sequenceName];
+                } elseif (isset($data[$index]) && is_array($data[$index])) {
+                    $payload = $data[$index];
+                }
+
+                if ($payload === null) {
+                    Log::warning("[$method] Missing prediction for index $index (".$sequenceName.") in task $taskId");
+
+                    continue;
+                }
+
+                $prediction = $payload['prediction'] ?? null;
+                $probability = $payload['probability'] ?? null;
+
+                // 防止非標量引發 "Array to string conversion"
+                if (is_array($prediction)) {
+                    $prediction = reset($prediction);
+                }
+                if (is_array($probability)) {
+                    $probability = reset($probability);
+                }
+
+                if ($prediction === null || $probability === null) {
+                    Log::warning("[$method] Invalid prediction payload at index $index in task $taskId");
+
+                    continue;
+                }
+
+                $predictionStr = (string) $prediction;
+                $predictionNorm = strtolower($predictionStr) === 'amp' ? 'AMP' : (strtolower($predictionStr) === 'non-amp' ? 'non-AMP' : (stripos($predictionStr, 'amp') !== false ? 'AMP' : 'non-AMP'));
+
+                $lines[] = sprintf('%s %s %s', $sequenceName, $predictionNorm, (string) $probability);
+            }
+
+            file_put_contents($outputPath, implode("\n", $lines)."\n");
+            Log::info("AmPEP30 microservice results written: {$outputPath}, total sequences: ".count($fastaSequenceNames));
+        } catch (\Exception $e) {
+            Log::error("Write AmPEP30 microservice results failed, TaskID: {$taskId}, Error: ".$e->getMessage());
+            throw $e;
         }
     }
 

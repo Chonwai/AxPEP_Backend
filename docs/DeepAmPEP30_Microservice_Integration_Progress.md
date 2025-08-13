@@ -31,7 +31,7 @@
 
 ### 2. 環境變數與設定
 - [ ] 新增/確認以下 `.env` 變數（可依部署調整）：
-  - `DEEPAMPEP30_MICROSERVICE_BASE_URL=http://localhost:8001`（或 Compose 預設 `8002`）
+  - `DEEPAMPEP30_MICROSERVICE_BASE_URL=http://localhost:8002`（或 Compose 預設 `8002`）
   - `USE_RFAMPEP30_MICROSERVICE=true`
   - `USE_DEEPAMPEP30_MICROSERVICE=true`
   - （選擇性，如拆成兩個服務）`RFAMPEP30_MICROSERVICE_BASE_URL=...`

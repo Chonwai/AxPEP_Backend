@@ -35,8 +35,15 @@ return [
     ],
 
     'ampep' => [
-        'url' => env('AMPEP_MICROSERVICE_BASE_URL', 'http://localhost:8001'),
+        'url' => env('AMPEP_MICROSERVICE_BASE_URL', 'http://host.docker.internal:8001'),
         'timeout' => env('AMPEP_MICROSERVICE_TIMEOUT', 3600),
     ],
 
+    'deepampep30' => [
+        'url' => env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'http://host.docker.internal:8002'),
+    ],
+
+    'rfampep30' => [
+        'url' => env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'http://host.docker.internal:8002'),
+    ],
 ];

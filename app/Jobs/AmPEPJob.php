@@ -71,10 +71,38 @@ class AmPEPJob implements ShouldQueue
                     TaskUtils::runAmpRegressionEcSaPredictMicroservice($this->task);
                 }
                 if ($key === 'deepampep30') {
-                    TaskUtils::runDeepAmPEP30Task($this->task);
+                    $useDeepMicroservice = env('USE_DEEPAMPEP30_MICROSERVICE', true);
+
+                    if ($useDeepMicroservice) {
+                        try {
+                            Log::info("嘗試使用DeepAmPEP30微服務，TaskID: {$this->task->id}");
+                            TaskUtils::runDeepAmPEP30Microservice($this->task);
+                            Log::info("DeepAmPEP30微服務調用成功，TaskID: {$this->task->id}");
+                        } catch (\Exception $e) {
+                            Log::error("DeepAmPEP30微服務調用失敗，回退到本地R腳本，TaskID: {$this->task->id}, 錯誤: {$e->getMessage()}");
+                            Log::error('微服務URL: '.env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'not_set'));
+                            TaskUtils::runDeepAmPEP30Task($this->task);
+                        }
+                    } else {
+                        TaskUtils::runDeepAmPEP30Task($this->task);
+                    }
                 }
                 if ($key === 'rfampep30') {
-                    TaskUtils::runRFAmPEP30Task($this->task);
+                    $useRFMicroservice = env('USE_RFAMPEP30_MICROSERVICE', true);
+
+                    if ($useRFMicroservice) {
+                        try {
+                            Log::info("嘗試使用RFAmPEP30微服務，TaskID: {$this->task->id}");
+                            TaskUtils::runRFAmPEP30Microservice($this->task);
+                            Log::info("RFAmPEP30微服務調用成功，TaskID: {$this->task->id}");
+                        } catch (\Exception $e) {
+                            Log::error("RFAmPEP30微服務調用失敗，回退到本地R腳本，TaskID: {$this->task->id}, 錯誤: {$e->getMessage()}");
+                            Log::error('微服務URL: '.env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'not_set'));
+                            TaskUtils::runRFAmPEP30Task($this->task);
+                        }
+                    } else {
+                        TaskUtils::runRFAmPEP30Task($this->task);
+                    }
                 }
             } else {
                 continue;

@@ -7,17 +7,17 @@ This microservice exposes antimicrobial peptide (AMP) prediction endpoints based
 #### Local (R installed)
 
 ```bash
-R -e "pr <- plumber::plumb('microservice/api/ampep30_final_api.R'); pr$run(host='0.0.0.0', port=8001)"
+R -e "pr <- plumber::plumb('microservice/api/ampep30_final_api.R'); pr$run(host='0.0.0.0', port=8002)"
 ```
 
-- Default port: `8001`
-- Health check: `GET http://localhost:8001/health`
+- Default port: `8002`
+- Health check: `GET http://localhost:8002/health`
 
 #### Docker
 
 ```bash
 docker build -f microservice/docker/Dockerfile -t deep-ampep30 .
-docker run --rm -e PLUMBER_PORT=8001 -p 8001:8001 deep-ampep30
+docker run --rm -e PLUMBER_PORT=8002 -p 8002:8002 deep-ampep30
 ```
 
 #### Docker Compose
@@ -34,14 +34,14 @@ docker compose -f microservice/docker/docker-compose.yml up --build
 |---|---|---|
 | `APP_ROOT` | `/app` (in container) | Application root used by startup script |
 | `PLUMBER_HOST` | `0.0.0.0` | Bind address |
-| `PLUMBER_PORT` | `8001` | HTTP port; Compose sets `8002` |
+| `PLUMBER_PORT` | `8002` | HTTP port; Compose sets `8002` |
 
 Note: Advanced configs in `microservice/config/config.R` apply to the alternative router `microservice/api/plumber.R`. The canonical final API (`ampep30_final_api.R`) primarily honors the host/port variables above.
 
 ### API Reference (Final API)
 
 Base URL depends on how you run the service:
-- Local: `http://localhost:8001`
+- Local: `http://localhost:8002`
 - Compose: `http://localhost:8002`
 
 #### GET /health
@@ -68,7 +68,7 @@ Parameters (form-encoded or query):
 
 Curl example:
 ```bash
-curl -X POST 'http://localhost:8001/predict/single' \
+curl -X POST 'http://localhost:8002/predict/single' \
   --data-urlencode 'sequence=ACDEFGHIKLMNPQRSTVWY' \
   -d 'name=seq1' -d 'method=rf' -d 'precision=3'
 ```
@@ -108,7 +108,7 @@ Parameters (form-encoded or query):
 
 Curl example (from file):
 ```bash
-curl -X POST 'http://localhost:8001/predict/fasta' \
+curl -X POST 'http://localhost:8002/predict/fasta' \
   --data-urlencode 'fasta_content@./test.fasta' \
   -d 'method=rf' -d 'precision=3'
 ```
