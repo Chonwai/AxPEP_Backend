@@ -1,0 +1,5 @@
+id,prediction_result,confidence_level,probability
+AC_1,"Invalid Sequence",Low,0.000
+AC_2,"Antimicrobial Peptide (95.8%)",Very High,0.958
+AC_3,"Non-Antimicrobial (12.3%)",Low,0.123
+AC_4,"Antimicrobial Peptide (67.8%)",Medium,0.678

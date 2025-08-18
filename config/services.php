@@ -46,4 +46,8 @@ return [
     'rfampep30' => [
         'url' => env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'http://host.docker.internal:8002'),
     ],
+
+    'amp_regression_ec_sa_predict' => [
+        'url' => env('AMP_REGRESSION_EC_SA_PREDICT_BASE_URL', 'http://host.docker.internal:8889'),
+    ],
 ];

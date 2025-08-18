@@ -85,6 +85,7 @@ class AmPEP30MicroserviceClient
 
     /**
      * 將不同路由的回應標準化為 [ { prediction, probability }, ... ]
+     * 現在也處理錯誤響應以保持序列順序映射
      */
     private function normalizeResponse(?array $body): array
     {
@@ -117,6 +118,8 @@ class AmPEP30MicroserviceClient
             $predictionRaw = $it['prediction'] ?? null;
             $prob = $it['amp_probability'] ?? ($it['probability'] ?? null);
             $name = $it['sequence_name'] ?? ($it['name'] ?? null);
+            $status = $it['status'] ?? null;
+            $error = $it['error'] ?? null;
 
             // 將非標量值轉為可用標量
             if (is_array($predictionRaw)) {
@@ -125,16 +128,37 @@ class AmPEP30MicroserviceClient
             if (is_array($prob)) {
                 $prob = reset($prob);
             }
-
-            if ($predictionRaw === null || $prob === null) {
-                continue;
+            // 修復：同樣處理 name 字段的數組格式
+            if (is_array($name)) {
+                $name = reset($name);
+            }
+            if (is_array($status)) {
+                $status = reset($status);
+            }
+            if (is_array($error)) {
+                $error = reset($error);
             }
 
-            $normalized[] = [
-                'name' => is_scalar($name) ? (string) $name : null,
-                'prediction' => $this->normalizeLabel($predictionRaw),
-                'probability' => is_numeric($prob) ? (float) $prob : (float) (string) $prob,
-            ];
+            // 檢查是否為錯誤響應
+            $isError = ($status === 'error') || ($predictionRaw === null && $prob === null && $error !== null);
+
+            if ($isError) {
+                // 處理錯誤響應：創建特殊的錯誤結果
+                $normalized[] = [
+                    'name' => is_scalar($name) ? (string) $name : null,
+                    'prediction' => 'ERROR',
+                    'probability' => 0.0,
+                    'error' => is_scalar($error) ? (string) $error : 'Unknown error',
+                ];
+            } elseif ($predictionRaw !== null && $prob !== null) {
+                // 處理成功響應
+                $normalized[] = [
+                    'name' => is_scalar($name) ? (string) $name : null,
+                    'prediction' => $this->normalizeLabel($predictionRaw),
+                    'probability' => is_numeric($prob) ? (float) $prob : (float) (string) $prob,
+                ];
+            }
+            // 如果既不是明確的錯誤也不是有效的成功響應，則跳過
         }
 
         return $normalized;

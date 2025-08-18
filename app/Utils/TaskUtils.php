@@ -160,14 +160,33 @@ class TaskUtils
                     $probability = reset($probability);
                 }
 
+                // 檢查是否為錯誤響應
+                if ($prediction === 'ERROR') {
+                    $errorMsg = $payload['error'] ?? 'Unknown error';
+                    Log::info("[$method] Error response for sequence $sequenceName in task $taskId: $errorMsg");
+                    $lines[] = sprintf('%s -1 -1 # %s', $sequenceName, $errorMsg);
+
+                    continue;
+                }
+
                 if ($prediction === null || $probability === null) {
                     Log::warning("[$method] Invalid prediction payload at index $index in task $taskId");
 
                     continue;
                 }
 
+                // 根據前端要求映射預測結果：AMP=1, non-AMP=0, ERROR=-1
                 $predictionStr = (string) $prediction;
-                $predictionNorm = strtolower($predictionStr) === 'amp' ? 'AMP' : (strtolower($predictionStr) === 'non-amp' ? 'non-AMP' : (stripos($predictionStr, 'amp') !== false ? 'AMP' : 'non-AMP'));
+                $predictionNorm = null;
+
+                if (strtolower($predictionStr) === 'amp' || $predictionStr === '1') {
+                    $predictionNorm = '1';  // AMP = 陽性序列
+                } elseif (strtolower($predictionStr) === 'non-amp' || $predictionStr === '0') {
+                    $predictionNorm = '0';  // non-AMP = 陰性序列
+                } else {
+                    // 如果無法識別，根據字符串內容判斷
+                    $predictionNorm = (stripos($predictionStr, 'amp') !== false && ! stripos($predictionStr, 'non')) ? '1' : '0';
+                }
 
                 $lines[] = sprintf('%s %s %s', $sequenceName, $predictionNorm, (string) $probability);
             }
