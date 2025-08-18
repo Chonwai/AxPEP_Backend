@@ -440,6 +440,89 @@ class TaskUtils
         }
     }
 
+    /**
+     * 使用 xDeep-AcPEP-Classification 微服務執行分類，寫出 xDeep-AcPEP-Classification.csv
+     * 若失敗則拋出例外交由上層回退到舊腳本
+     */
+    public static function runAcPEPClassificationTaskMicroservice($task)
+    {
+        try {
+            $fastaPath = storage_path("app/Tasks/$task->id/input.fasta");
+            $fastaContent = file_get_contents($fastaPath);
+            if ($fastaContent === false) {
+                throw new \Exception("Failed to read FASTA file: $fastaPath");
+            }
+
+            $client = new \App\Services\AcPEPClassificationMicroserviceClient;
+            $normalized = $client->predictFasta($fastaContent);
+
+            self::writeAcPEPClassificationMicroserviceResults($task->id, $normalized);
+            Log::info("xDeep-AcPEP-Classification microservice completed, TaskID: {$task->id}");
+        } catch (\Throwable $e) {
+            Log::error('xDeep-AcPEP-Classification microservice failed: '.$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 將微服務結果寫為 xDeep-AcPEP-Classification.csv
+     * 目標格式：sequence_name,classification,confidence
+     * 其中 classification 以 prediction(0/1) 映射為 label（與現有 FileUtils 匹配：value[1]）
+     */
+    private static function writeAcPEPClassificationMicroserviceResults($taskId, array $normalized): void
+    {
+        $outputPath = storage_path("app/Tasks/$taskId/xDeep-AcPEP-Classification.csv");
+
+        // 依據 FASTA 保序
+        $fastaPath = storage_path("app/Tasks/$taskId/input.fasta");
+        $fastaContent = file_get_contents($fastaPath);
+        if ($fastaContent === false) {
+            throw new \Exception("Failed to read FASTA file: $fastaPath");
+        }
+
+        $order = [];
+        foreach (explode("\n", $fastaContent) as $line) {
+            if (strpos($line, '>') === 0) {
+                $order[] = trim(substr($line, 1));
+            }
+        }
+
+        // name -> row 索引
+        $map = [];
+        foreach ($normalized as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $name = $row['name'] ?? null;
+            if (! is_string($name)) {
+                continue;
+            }
+            $prediction = $row['prediction'] ?? null;
+            $prob = $row['probability'] ?? null;
+            if ($prediction === null || $prob === null) {
+                continue;
+            }
+
+            // 將 0/1 映射為分類字串，與舊流程一致：FileUtils::matchingAcPEPScore 會讀 value[1] 作為 classification
+            $label = ($prediction === 1 || $prediction === '1') ? '1' : '0';
+            $map[$name] = [$name, $label, (float) $prob];
+        }
+
+        $lines = [];
+        foreach ($order as $seqName) {
+            if (isset($map[$seqName])) {
+                [$name, $label, $prob] = $map[$seqName];
+                $lines[] = sprintf('%s,%s,%.6f', $name, $label, $prob);
+            } else {
+                // 缺資料時以空分類與 0 分數
+                $lines[] = sprintf('%s,,0', $seqName);
+            }
+        }
+
+        file_put_contents($outputPath, implode("\n", $lines)."\n");
+        Log::info("xDeep-AcPEP-Classification results written: {$outputPath}, total sequences: ".count($order));
+    }
+
     public static function runCodonTask($task, $codonCode = '1')
     {
         $process = new Process([env('PYTHON_VER', 'python3'), '../Genome/ORF.py', "storage/app/Tasks/$task->id/codon.fasta", "$codonCode"]);

@@ -52,9 +52,23 @@ class AcPEPJob implements ShouldQueue
                 continue;
             }
         }
-        TaskUtils::copyAcPEPInputFile($this->task);
-        TaskUtils::runAcPEPClassificationTask($this->task);
-        TaskUtils::renameAcPEPClassificationResultFile($this->task);
+
+        // 分類：優先使用微服務，失敗回退到舊腳本
+        $useMicroservice = env('USE_XDEEP_ACPEP_CLASSIFICATION_MICROSERVICE', false);
+        if ($useMicroservice) {
+            try {
+                TaskUtils::runAcPEPClassificationTaskMicroservice($this->task);
+            } catch (\Throwable $e) {
+                // 回退
+                TaskUtils::copyAcPEPInputFile($this->task);
+                TaskUtils::runAcPEPClassificationTask($this->task);
+                TaskUtils::renameAcPEPClassificationResultFile($this->task);
+            }
+        } else {
+            TaskUtils::copyAcPEPInputFile($this->task);
+            TaskUtils::runAcPEPClassificationTask($this->task);
+            TaskUtils::renameAcPEPClassificationResultFile($this->task);
+        }
 
         AcPEPServices::getInstance()->finishedTask($this->task->id);
     }
