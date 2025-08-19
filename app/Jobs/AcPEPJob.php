@@ -46,8 +46,19 @@ class AcPEPJob implements ShouldQueue
     {
         foreach ($this->request['methods'] as $key => $value) {
             if ($value == true) {
-                TaskUtils::runAcPEPTask($this->task, $key);
-                TaskUtils::renameAcPEPResultFile($this->task, $key);
+                // xDeep-AcPEP（tissue）方法：優先使用微服務，失敗回退舊腳本
+                $useAcPEPMicroservice = env('USE_XDEEP_ACPEP_MICROSERVICE', true);
+                if ($useAcPEPMicroservice) {
+                    try {
+                        TaskUtils::runAcPEPTaskMicroservice($this->task, $key);
+                    } catch (\Throwable $e) {
+                        TaskUtils::runAcPEPTask($this->task, $key);
+                        TaskUtils::renameAcPEPResultFile($this->task, $key);
+                    }
+                } else {
+                    TaskUtils::runAcPEPTask($this->task, $key);
+                    TaskUtils::renameAcPEPResultFile($this->task, $key);
+                }
             } else {
                 continue;
             }

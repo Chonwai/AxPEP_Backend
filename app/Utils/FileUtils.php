@@ -5,6 +5,7 @@ namespace App\Utils;
 use App\Exports\AmPEPResultExport;
 use App\Imports\AmPEPResultImport;
 use App\Imports\OutImport;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -177,7 +178,7 @@ class FileUtils
                 throw new \Exception("找不到HemoPep詳細結果文件: $detailedCsvPath");
             }
         } catch (\Exception $e) {
-            \Log::error('寫入HemoPep結果文件錯誤: '.$e->getMessage());
+            Log::error('寫入HemoPep結果文件錯誤: '.$e->getMessage());
             throw $e;
         }
     }
@@ -209,12 +210,58 @@ class FileUtils
 
     public static function matchingAcPEPClassification($id, $method, $classifications)
     {
-        $fResult = Excel::toArray(new OutImport, "Tasks/$id/$method.out", null, \Maatwebsite\Excel\Excel::CSV);
-        array_shift($fResult[0]);
-        foreach ($fResult[0] as $key => $value) {
-            $classifications[0] = array_map(function ($val) use ($value, $method) {
-                if ($val['id'] === $value[0]) {
-                    $val["$method"] = $value[1];
+        // 以 CSV 方式讀入，對於以空白分隔的 .out 檔每列會落在第一個欄位
+        $rows = Excel::toArray(new OutImport, "Tasks/$id/$method.out", null, \Maatwebsite\Excel\Excel::CSV);
+
+        if (empty($rows) || ! isset($rows[0])) {
+            return $classifications;
+        }
+
+        $dataRows = $rows[0];
+
+        // 僅在第一列明顯是表頭時移除（例如 id,classification,... 或 name,...）
+        if (! empty($dataRows)) {
+            $first = $dataRows[0];
+            $firstCell = isset($first[0]) ? strtolower((string) $first[0]) : '';
+            if ($firstCell === 'id' || strpos($firstCell, 'id,') === 0 || $firstCell === 'name' || strpos($firstCell, 'name,') === 0) {
+                array_shift($dataRows);
+            }
+        }
+
+        foreach ($dataRows as $row) {
+            $sequenceId = null;
+            $label = null;
+
+            // 情況一：CSV/多欄位（id,label,score...）
+            if (is_array($row) && count($row) >= 2 && $row[0] !== null && $row[0] !== '') {
+                $sequenceId = trim((string) $row[0]);
+                if (trim((string) $row[2]) == '0') {
+                    $label = 'OUT OF AD';
+                } else {
+                    $label = trim((string) $row[2]);
+                }
+            }
+
+            // 情況二：單欄位，實際為以空白分隔的字串（如："AP1-Z1 1 6.877664"）
+            if (($sequenceId === null || $label === null) && isset($row[0])) {
+                $parts = preg_split('/\s+/', trim((string) $row[0]));
+                if (count($parts) >= 2) {
+                    $sequenceId = $parts[0];
+                    if ($parts[2] == '0') {
+                        $label = 'OUT OF AD';
+                    } else {
+                        $label = $parts[2];
+                    }
+                }
+            }
+
+            if ($sequenceId === null || $label === null || $sequenceId === '') {
+                continue;
+            }
+
+            $classifications[0] = array_map(function ($val) use ($sequenceId, $label, $method) {
+                if (isset($val['id']) && $val['id'] === $sequenceId) {
+                    $val[$method] = $label;
                 }
 
                 return $val;

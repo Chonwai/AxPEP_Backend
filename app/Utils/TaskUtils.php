@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use App\Services\AcPEPMicroserviceClient;
 use App\Services\AmPEP30MicroserviceClient;
 use App\Services\AmPEPMicroserviceClient;
 use App\Services\AmpRegressionECSAPredictMicroserviceClient;
@@ -418,26 +419,123 @@ class TaskUtils
 
     public static function runAcPEPTask($task, $method)
     {
-        $process = new Process([env('PYTHON_VER', 'python3'), '../xDeep-AcPEP/prediction/prediction.py', '-t', "$method", '-m', '../xDeep-AcPEP/prediction/model/', '-d', "storage/app/Tasks/$task->id/input.fasta", '-o', "storage/app/Tasks/$task->id/$method.out."]);
+        // 新實作：優先使用微服務，必要時可回退到舊腳本（由上層控制）
+        self::runAcPEPTaskMicroservice($task, $method);
+    }
+
+    public static function runAcPEPClassificationTask($task)
+    {
+        // 保留舊腳本方法供回退；預設在 Job 中已切到微服務
+        $process = new Process([env('PYTHON_VER', 'python3'), '../xDeep-AcPEP-Classification/main.py', "../xDeep-AcPEP-Classification/$task->id.fasta"]);
         $process->setTimeout(3600);
         $process->run();
 
-        // executes after the command finishes
         if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }
 
-    public static function runAcPEPClassificationTask($task)
+    /**
+     * 使用 xDeep-AcPEP 微服務執行各 tissue 方法，並寫出 <method>.out（空白分隔三欄：id prediction probability）
+     * 注意：AcPEP 的 prediction 是連續值；為了與現有 AmPEP 檔案相容，這裡第二欄仍以二元標籤表示（> 0 則 1，否則 0），第三欄寫入連續分數
+     */
+    public static function runAcPEPTaskMicroservice($task, string $method)
     {
-        $process = new Process([env('PYTHON_VER', 'python3'), '../xDeep-AcPEP-Classification/main.py', "../xDeep-AcPEP-Classification/$task->id.fasta"]);
-        $process->setTimeout(3600);
-        $process->run();
+        try {
+            $fastaPath = storage_path("app/Tasks/$task->id/input.fasta");
+            $sequences = self::parseFastaFile($fastaPath);
+            $items = array_map(function ($seq) {
+                return [
+                    'name' => $seq['id'],
+                    'sequence' => $seq['sequence'],
+                ];
+            }, $sequences);
 
-        // executes after the command finishes
-        if (! $process->isSuccessful()) {
-            throw new ProcessFailedException($process);
+            $client = new AcPEPMicroserviceClient;
+            $results = $client->predictBatchItems($method, $items);
+
+            self::writeAcPEPMicroserviceResults($task->id, $method, $results);
+            Log::info("xDeep-AcPEP microservice prediction completed, TaskID: {$task->id}, method: {$method}");
+        } catch (\Throwable $e) {
+            Log::error('xDeep-AcPEP microservice failed: '.$e->getMessage());
+            throw $e;
         }
+    }
+
+    /**
+     * 將 AcPEP 微服務結果寫為 <method>.out（空白分隔）
+     * 行格式：sequence_name label score
+     * - label：由 prediction 連續值轉換（> 0 -> 1；<= 0 -> 0）。如需調整閾值可之後改為 env 參數
+     * - score：直接寫連續值 prediction
+     */
+    private static function writeAcPEPMicroserviceResults($taskId, string $method, array $results): void
+    {
+        $outputPath = storage_path("app/Tasks/$taskId/$method.out");
+
+        // 讀取 FASTA 以保序
+        $fastaPath = storage_path("app/Tasks/$taskId/input.fasta");
+        $fastaContent = file_get_contents($fastaPath);
+        if ($fastaContent === false) {
+            throw new \Exception("Failed to read FASTA file: $fastaPath");
+        }
+
+        $order = [];
+        foreach (explode("\n", $fastaContent) as $line) {
+            if (strpos($line, '>') === 0) {
+                $order[] = trim(substr($line, 1));
+            }
+        }
+
+        // 建立 name -> payload 索引
+        $map = [];
+        foreach ($results as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $name = $row['name'] ?? null;
+            if (! is_string($name)) {
+                continue;
+            }
+            $prediction = $row['prediction'] ?? null;
+            $outOfAd = $row['out_of_ad'] ?? false;
+
+            $threshold = (float) env('XDEEP_ACPEP_LABEL_THRESHOLD', 0.0);
+
+            if ($prediction === null || $outOfAd === true) {
+                $score = 0.0;
+                $label = '0';
+                $map[$name] = [$name, $label, sprintf('%.6f', $score)];
+
+                continue;
+            }
+
+            if (! is_numeric($prediction)) {
+                continue;
+            }
+            $score = (float) $prediction;
+            $label = $score > $threshold ? '1' : '0';
+            $map[$name] = [$name, $label, sprintf('%.6f', $score)];
+        }
+
+        // 以 CSV 寫檔，並加入表頭，符合 FileUtils::matchingAcPEPClassification() 預期
+        $fp = fopen($outputPath, 'w');
+        if ($fp === false) {
+            throw new \RuntimeException("Unable to open output file for writing: $outputPath");
+        }
+        // 表頭（內容不被消費，但會被丟棄）
+        fputcsv($fp, ['id', 'classification', 'score']);
+
+        foreach ($order as $seqName) {
+            if (isset($map[$seqName])) {
+                [$name, $label, $score] = $map[$seqName];
+                fputcsv($fp, [$name, $label, $score]);
+            } else {
+                // 缺值以 0 分與 0 標籤
+                fputcsv($fp, [$seqName, '0', '0']);
+            }
+        }
+        fclose($fp);
+        Log::info("xDeep-AcPEP CSV results written: {$outputPath}, total sequences: ".count($order));
     }
 
     /**
