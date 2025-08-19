@@ -6,6 +6,7 @@ use App\Services\AcPEPMicroserviceClient;
 use App\Services\AmPEP30MicroserviceClient;
 use App\Services\AmPEPMicroserviceClient;
 use App\Services\AmpRegressionECSAPredictMicroserviceClient;
+use App\Services\CodonMicroserviceClient;
 use App\Services\EcotoxicologyMicroserviceClient;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -630,6 +631,32 @@ class TaskUtils
         // executes after the command finishes
         if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
+        }
+    }
+
+    /**
+     * 使用 Codon 微服務進行 ORF 抽取，並寫出 codon_orf.fasta
+     * 失敗時拋出例外，交由上層回退到本地腳本
+     */
+    public static function runCodonTaskMicroservice($task, $codonCode = '1')
+    {
+        try {
+            $fastaPath = storage_path("app/Tasks/$task->id/codon.fasta");
+            $fastaContent = file_get_contents($fastaPath);
+            if ($fastaContent === false) {
+                throw new \Exception("Failed to read FASTA file: $fastaPath");
+            }
+
+            $client = new CodonMicroserviceClient;
+            $codonTable = is_numeric($codonCode) ? (int) $codonCode : 1;
+            $result = $client->predictBatchFasta($fastaContent, $codonTable);
+
+            $outputPath = storage_path("app/Tasks/$task->id/codon_orf.fasta");
+            file_put_contents($outputPath, (string) ($result['fasta'] ?? ''));
+            Log::info("Codon microservice generated fasta for TaskID: {$task->id}");
+        } catch (\Throwable $e) {
+            Log::error('Codon microservice failed: '.$e->getMessage());
+            throw $e;
         }
     }
 

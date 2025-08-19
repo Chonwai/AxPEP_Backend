@@ -54,7 +54,21 @@ class CodonJob implements ShouldQueue
     public function handle()
     {
         echo 'Running '.$this->task->id." Codon Task!\n";
-        TaskUtils::runCodonTask($this->task, $this->codonCode);
+        // 微服務優先，失敗則回退到本地腳本
+        $useMicroservice = (bool) env('USE_CODON_MICROSERVICE', true);
+        $ranMicroservice = false;
+        if ($useMicroservice) {
+            try {
+                TaskUtils::runCodonTaskMicroservice($this->task, $this->codonCode);
+                $ranMicroservice = true;
+            } catch (\Throwable $e) {
+                // 回退到本地腳本
+                TaskUtils::runCodonTask($this->task, $this->codonCode);
+            }
+        }
+        if (! $ranMicroservice && ! $useMicroservice) {
+            TaskUtils::runCodonTask($this->task, $this->codonCode);
+        }
         TaskUtils::renameCodonFasta($this->task);
 
         if ($this->function == 'AmPEP') {
