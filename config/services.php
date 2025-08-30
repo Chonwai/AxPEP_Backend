@@ -50,4 +50,10 @@ return [
     'amp_regression_ec_sa_predict' => [
         'url' => env('AMP_REGRESSION_EC_SA_PREDICT_BASE_URL', 'http://host.docker.internal:8889'),
     ],
+
+    'bestox' => [
+        'url' => env('BESTOX_MICROSERVICE_BASE_URL', 'http://localhost:8006'),
+        'timeout' => env('BESTOX_MICROSERVICE_TIMEOUT', 3600),
+        'enabled' => env('USE_BESTOX_MICROSERVICE', true),
+    ],
 ];

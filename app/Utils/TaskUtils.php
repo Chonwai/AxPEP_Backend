@@ -6,6 +6,7 @@ use App\Services\AcPEPMicroserviceClient;
 use App\Services\AmPEP30MicroserviceClient;
 use App\Services\AmPEPMicroserviceClient;
 use App\Services\AmpRegressionECSAPredictMicroserviceClient;
+use App\Services\BESToxMicroserviceClient;
 use App\Services\CodonMicroserviceClient;
 use App\Services\EcotoxicologyMicroserviceClient;
 use Illuminate\Support\Facades\Log;
@@ -670,6 +671,104 @@ class TaskUtils
         if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
+    }
+
+    /**
+     * 使用 BESTox 微服務進行毒性預測，並寫出 result.csv（格式：id,smiles,pre）
+     * 失敗時拋出例外，交由上層回退到本地腳本
+     */
+    public static function runBESToxMicroservice($task)
+    {
+        try {
+            $smiPath = storage_path("app/Tasks/$task->id/input.smi");
+            $smiContent = file_get_contents($smiPath);
+            if ($smiContent === false) {
+                throw new \Exception("Failed to read SMI file: $smiPath");
+            }
+
+            $client = new BESToxMicroserviceClient;
+            $results = $client->predictSmilesText($smiContent);
+
+            self::writeBESToxMicroserviceResults($task->id, $results);
+            Log::info("BESTox microservice prediction completed, TaskID: {$task->id}");
+        } catch (\Throwable $e) {
+            Log::error('BESTox microservice failed: '.$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 將 BESTox 微服務結果寫為 result.csv（格式：id,smiles,pre）
+     * 與現有本地腳本輸出格式保持一致
+     */
+    private static function writeBESToxMicroserviceResults($taskId, array $results): void
+    {
+        $outputPath = storage_path("app/Tasks/$taskId/result.csv");
+
+        // 讀取原始 SMI 檔案以保持分子順序
+        $smiPath = storage_path("app/Tasks/$taskId/input.smi");
+        $smiContent = file_get_contents($smiPath);
+        if ($smiContent === false) {
+            throw new \Exception("Failed to read SMI file: $smiPath");
+        }
+
+        $originalOrder = [];
+        $lines = array_filter(array_map('trim', explode("\n", $smiContent)));
+        foreach ($lines as $index => $line) {
+            if (empty($line) || strpos($line, '#') === 0) {
+                continue;
+            }
+
+            $parts = preg_split('/\s+/', $line, 2);
+            $smiles = $parts[0];
+            $moleculeId = isset($parts[1]) ? $parts[1] : "mol_" . ($index + 1);
+
+            $originalOrder[] = [
+                'smiles' => $smiles,
+                'molecule_id' => $moleculeId,
+            ];
+        }
+
+        // 建立微服務結果的索引（以 smiles 或 molecule_id 為鍵）
+        $resultMap = [];
+        foreach ($results as $result) {
+            $key = $result['molecule_id'] ?? $result['smiles'] ?? '';
+            if (!empty($key)) {
+                $resultMap[$key] = $result;
+            }
+        }
+
+        // 開啟 CSV 檔案寫入
+        $fp = fopen($outputPath, 'w');
+        if ($fp === false) {
+            throw new \RuntimeException("Unable to open output file for writing: $outputPath");
+        }
+
+        // 寫入 CSV 表頭（與舊版本格式一致）
+        fputcsv($fp, ['id', 'smiles', 'pre']);
+
+        // 依照原始順序寫入結果
+        foreach ($originalOrder as $original) {
+            $moleculeId = $original['molecule_id'];
+            $smiles = $original['smiles'];
+
+            // 優先以 molecule_id 匹配，其次用 smiles
+            $result = $resultMap[$moleculeId] ?? $resultMap[$smiles] ?? null;
+
+            if ($result && $result['status'] === 'success' && $result['ld50'] !== null) {
+                // 成功預測：使用 LD50 值作為 pre 欄位
+                $predictionValue = $result['ld50'];
+                fputcsv($fp, [$moleculeId, $smiles, sprintf('%.6f', $predictionValue)]);
+            } else {
+                // 預測失敗或無結果：使用預設值
+                $errorMsg = $result['error'] ?? 'No prediction available';
+                Log::warning("BESTox prediction failed for $moleculeId ($smiles): $errorMsg");
+                fputcsv($fp, [$moleculeId, $smiles, '0.000000']); // 預設值
+            }
+        }
+
+        fclose($fp);
+        Log::info("BESTox microservice results written: {$outputPath}, total molecules: ".count($originalOrder));
     }
 
     public static function runSSLBESToxTask($task, $method)
