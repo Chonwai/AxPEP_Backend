@@ -721,7 +721,7 @@ class TaskUtils
 
             $parts = preg_split('/\s+/', $line, 2);
             $smiles = $parts[0];
-            $moleculeId = isset($parts[1]) ? $parts[1] : "mol_" . ($index + 1);
+            $moleculeId = isset($parts[1]) ? $parts[1] : 'mol_'.($index + 1);
 
             $originalOrder[] = [
                 'smiles' => $smiles,
@@ -733,7 +733,7 @@ class TaskUtils
         $resultMap = [];
         foreach ($results as $result) {
             $key = $result['molecule_id'] ?? $result['smiles'] ?? '';
-            if (!empty($key)) {
+            if (! empty($key)) {
                 $resultMap[$key] = $result;
             }
         }
