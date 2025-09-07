@@ -56,4 +56,11 @@ return [
         'timeout' => env('BESTOX_MICROSERVICE_TIMEOUT', 3600),
         'enabled' => env('USE_BESTOX_MICROSERVICE', true),
     ],
+
+    'ssl_gcn' => [
+        'url' => env('SSL_GCN_MICROSERVICE_BASE_URL', 'http://localhost:8007'),
+        'timeout' => env('SSL_GCN_MICROSERVICE_TIMEOUT', 300),
+        'max_retries' => env('SSL_GCN_MICROSERVICE_MAX_RETRIES', 3),
+        'enabled' => env('USE_SSL_GCN_MICROSERVICE', true),
+    ],
 ];

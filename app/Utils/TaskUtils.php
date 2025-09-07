@@ -9,6 +9,7 @@ use App\Services\AmpRegressionECSAPredictMicroserviceClient;
 use App\Services\BESToxMicroserviceClient;
 use App\Services\CodonMicroserviceClient;
 use App\Services\EcotoxicologyMicroserviceClient;
+use App\Services\SSLGCNMicroserviceClient;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -781,6 +782,203 @@ class TaskUtils
         if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
+    }
+
+    /**
+     * 使用 SSL-GCN 微服務進行毒理學預測，並寫出標準格式結果文件
+     * 失敗時拋出例外，交由上層回退到本地腳本
+     *
+     * @param  object  $task  任務對象
+     * @param  string  $method  毒理學端點類型（如 NR-AR, SR-p53 等）
+     *
+     * @throws \Exception 當微服務調用失敗時
+     */
+    public static function runSSLBESToxTaskMicroservice($task, $method)
+    {
+        try {
+            $fastaPath = storage_path("app/Tasks/$task->id/input.fasta");
+            $fastaContent = file_get_contents($fastaPath);
+            if ($fastaContent === false) {
+                throw new \Exception("Failed to read FASTA file: $fastaPath");
+            }
+
+            // 映射方法名到 SSL-GCN 支援的毒理學端點
+            $taskType = self::mapMethodToTaskType($method);
+
+            $client = new SSLGCNMicroserviceClient;
+            $results = $client->predictFasta($fastaContent, $taskType);
+
+            self::writeSSLGCNMicroserviceResults($task->id, $method, $results);
+            Log::info('SSL-GCN microservice prediction completed', [
+                'task_id' => $task->id,
+                'method' => $method,
+                'task_type' => $taskType,
+                'molecules_processed' => count($results),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('SSL-GCN microservice failed', [
+                'task_id' => $task->id,
+                'method' => $method,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * 將現有的方法名映射到 SSL-GCN 支援的毒理學端點
+     *
+     * @param  string  $method  現有方法名
+     * @return string SSL-GCN 任務類型
+     *
+     * @throws \InvalidArgumentException 當方法名無法映射時
+     */
+    private static function mapMethodToTaskType(string $method): string
+    {
+        // 方法名到毒理學端點的映射
+        $methodMapping = [
+            'toxicity' => 'SR-p53',
+            'nr-ar' => 'NR-AR',
+            'nr-ar-lbd' => 'NR-AR-LBD',
+            'nr-ahr' => 'NR-AhR',
+            'nr-aromatase' => 'NR-Aromatase',
+            'nr-er' => 'NR-ER',
+            'nr-er-lbd' => 'NR-ER-LBD',
+            'nr-ppar-gamma' => 'NR-PPAR-gamma',
+            'sr-are' => 'SR-ARE',
+            'sr-atad5' => 'SR-ATAD5',
+            'sr-hse' => 'SR-HSE',
+            'sr-mmp' => 'SR-MMP',
+            'sr-p53' => 'SR-p53',
+        ];
+
+        $normalizedMethod = strtolower($method);
+
+        if (isset($methodMapping[$normalizedMethod])) {
+            return $methodMapping[$normalizedMethod];
+        }
+
+        // 如果直接是支援的任務類型，直接返回
+        $client = new SSLGCNMicroserviceClient;
+        if ($client->isTaskTypeSupported($method)) {
+            return $method;
+        }
+
+        // 預設使用 SR-p53（通用毒性端點）
+        Log::warning("Unknown SSL-GCN method '{$method}', defaulting to SR-p53");
+
+        return 'SR-p53';
+    }
+
+    /**
+     * 將 SSL-GCN 微服務結果寫為標準格式文件
+     * 與現有本地腳本輸出格式保持一致
+     *
+     * @param  string  $taskId  任務ID
+     * @param  string  $method  方法名
+     * @param  array  $results  微服務預測結果
+     */
+    private static function writeSSLGCNMicroserviceResults(string $taskId, string $method, array $results): void
+    {
+        $outputPath = storage_path("app/Tasks/$taskId/$method.result.csv");
+
+        try {
+            $csvContent = [];
+
+            // 添加 CSV 標題行（與現有格式保持一致）
+            $csvContent[] = ['id', 'smiles', 'prediction'];
+
+            // 讀取原始 FASTA 文件以保持順序一致性
+            $fastaPath = storage_path("app/Tasks/$taskId/input.fasta");
+            $fastaContent = file_get_contents($fastaPath);
+            $originalMolecules = self::parseFastaForSSLGCN($fastaContent);
+
+            // 建立結果映射（以 molecule_id 和 smiles 為鍵）
+            $resultMap = [];
+            foreach ($results as $result) {
+                $moleculeId = $result['molecule_id'] ?? '';
+                $smiles = $result['smiles'] ?? '';
+
+                if (! empty($moleculeId)) {
+                    $resultMap[$moleculeId] = $result;
+                }
+                if (! empty($smiles)) {
+                    $resultMap[$smiles] = $result;
+                }
+            }
+
+            // 依照原始順序寫入結果
+            foreach ($originalMolecules as $original) {
+                $moleculeId = $original['molecule_id'];
+                $smiles = $original['smiles'];
+
+                // 優先以 molecule_id 匹配，其次用 smiles
+                $result = $resultMap[$moleculeId] ?? $resultMap[$smiles] ?? null;
+
+                if ($result && isset($result['prediction'])) {
+                    // CSV 格式：id,smiles,prediction
+                    $prediction = $result['prediction'];
+                    $csvContent[] = [$moleculeId, $smiles, $prediction];
+                } else {
+                    // 預測失敗或無結果：使用預設值
+                    $errorMsg = $result['error'] ?? 'No prediction available';
+                    Log::warning("SSL-GCN prediction failed for $moleculeId ($smiles): $errorMsg");
+                    $csvContent[] = [$moleculeId, $smiles, '0']; // 預設值
+                }
+            }
+
+            // 將陣列轉換為 CSV 文件
+            $fp = fopen($outputPath, 'w');
+            foreach ($csvContent as $row) {
+                fputcsv($fp, $row);
+            }
+            fclose($fp);
+            Log::info('SSL-GCN microservice results written', [
+                'output_path' => $outputPath,
+                'total_molecules' => count($originalMolecules),
+                'method' => $method,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to write SSL-GCN microservice results: '.$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 解析 FASTA 內容用於 SSL-GCN（序列為 SMILES 格式）
+     *
+     * @param  string  $fastaContent  FASTA 格式內容
+     * @return array 分子資訊陣列
+     */
+    private static function parseFastaForSSLGCN(string $fastaContent): array
+    {
+        $molecules = [];
+        $lines = array_filter(array_map('trim', explode("\n", $fastaContent)));
+
+        $currentId = null;
+        foreach ($lines as $line) {
+            if (empty($line) || strpos($line, '#') === 0) {
+                continue;
+            }
+
+            if (strpos($line, '>') === 0) {
+                // Header 行
+                $currentId = trim(substr($line, 1));
+            } elseif ($currentId !== null) {
+                // 序列行（實際上是 SMILES）
+                $smiles = trim($line);
+                if (! empty($smiles)) {
+                    $molecules[] = [
+                        'molecule_id' => $currentId,
+                        'smiles' => $smiles,
+                    ];
+                    $currentId = null;
+                }
+            }
+        }
+
+        return $molecules;
     }
 
     public static function runEcotoxicologyTask($task, $method)
