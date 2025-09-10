@@ -260,7 +260,7 @@ class FileUtils
             }
 
             $classifications[0] = array_map(function ($val) use ($sequenceId, $label, $method) {
-                if (isset($val['id']) && $val['id'] === $sequenceId) {
+                if (isset($val['id']) && trim($val['id']) === trim($sequenceId)) {
                     $val[$method] = $label;
                 }
 
@@ -276,7 +276,8 @@ class FileUtils
         $fResult = Excel::toArray(new OutImport, "Tasks/$id/xDeep-AcPEP-Classification.csv", null, \Maatwebsite\Excel\Excel::CSV);
         foreach ($fResult[0] as $key => $value) {
             $scores[0] = array_map(function ($val) use ($value) {
-                if ($val['id'] === $value[0]) {
+                // 修復：去除ID中的空格進行比較
+                if (trim($val['id']) === trim($value[0])) {
                     $val['score'] = $value[2];
                     if ($value[1] != '') {
                         $val['classification'] = $value[1];
@@ -298,7 +299,7 @@ class FileUtils
         array_shift($fResult[0]);
         foreach ($fResult[0] as $key => $value) {
             $classifications[0] = array_map(function ($val) use ($value, $method) {
-                if ($val['id'] === $value[0]) {
+                if (trim($val['id']) === trim($value[0])) {
                     $val["$method"] = strval($value[2]);
                 }
 
