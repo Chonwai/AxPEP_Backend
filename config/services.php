@@ -31,34 +31,34 @@ return [
     ],
 
     'bert_hemopep60' => [
-        'url' => env('BERT_HEMOPEP60_MICROSERVICE_BASE_URL', 'http://localhost:9001'),
+        'url' => env('BERT_HEMOPEP60_MICROSERVICE_BASE_URL', 'http://172.17.0.1:9001'),
     ],
 
     'ampep' => [
-        'url' => env('AMPEP_MICROSERVICE_BASE_URL', 'http://host.docker.internal:8001'),
+        'url' => env('AMPEP_MICROSERVICE_BASE_URL', 'http://172.17.0.1:8001'),
         'timeout' => env('AMPEP_MICROSERVICE_TIMEOUT', 3600),
     ],
 
     'deepampep30' => [
-        'url' => env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'http://host.docker.internal:8002'),
+        'url' => env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'http://172.17.0.1:8002'),
     ],
 
     'rfampep30' => [
-        'url' => env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'http://host.docker.internal:8002'),
+        'url' => env('DEEPAMPEP30_MICROSERVICE_BASE_URL', 'http://172.17.0.1:8002'),
     ],
 
     'amp_regression_ec_sa_predict' => [
-        'url' => env('AMP_REGRESSION_EC_SA_PREDICT_BASE_URL', 'http://host.docker.internal:8889'),
+        'url' => env('AMP_REGRESSION_EC_SA_PREDICT_BASE_URL', 'http://172.17.0.1:8889'),
     ],
 
     'bestox' => [
-        'url' => env('BESTOX_MICROSERVICE_BASE_URL', 'http://localhost:8006'),
+        'url' => env('BESTOX_MICROSERVICE_BASE_URL', 'http://172.17.0.1:8006'),
         'timeout' => env('BESTOX_MICROSERVICE_TIMEOUT', 3600),
         'enabled' => env('USE_BESTOX_MICROSERVICE', true),
     ],
 
     'ssl_gcn' => [
-        'url' => env('SSL_GCN_MICROSERVICE_BASE_URL', 'http://localhost:8007'),
+        'url' => env('SSL_GCN_MICROSERVICE_BASE_URL', 'http://172.17.0.1:8007'),
         'timeout' => env('SSL_GCN_MICROSERVICE_TIMEOUT', 300),
         'max_retries' => env('SSL_GCN_MICROSERVICE_MAX_RETRIES', 3),
         'enabled' => env('USE_SSL_GCN_MICROSERVICE', true),

@@ -1,7 +1,7 @@
 # PHP 8.1 FPM（自動支援多架構包括ARM）
 FROM php:8.1-fpm
 
-# 安裝依賴 (移除nginx，添加PostgreSQL支持)
+# 安裝依賴 (移除nginx，添加PostgreSQL支持和R環境)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -12,7 +12,9 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     zip \
     unzip \
-    supervisor
+    supervisor \
+    r-base \
+    r-base-dev
 
 # 清理apt緩存
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
