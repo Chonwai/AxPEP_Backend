@@ -2,7 +2,7 @@
 
 ################################################################################
 # Docker 網絡配置修復 - 一鍵部署腳本
-# 
+#
 # 用途：修復 Docker 容器無法訪問宿主機微服務的問題
 # 日期：2026-01-07
 # 作者：Technical Team
@@ -100,14 +100,14 @@ NEEDS_UPDATE=false
 if grep -q "127\.0\.0\.1\|172\.17\.0\.1" "$ENV_FILE" 2>/dev/null; then
     log_warning "發現使用 127.0.0.1 或 172.17.0.1 的配置"
     NEEDS_UPDATE=true
-    
+
     # 顯示需要修改的行
     log_info "以下配置需要更新："
     grep -n "127\.0\.0\.1\|172\.17\.0\.1" "$ENV_FILE" | while read line; do
         echo "  $line"
     done
     echo ""
-    
+
     log_warning "建議手動編輯 .env 文件，將以下 URL 改為 host.docker.internal："
     echo "  - AMPEP_MICROSERVICE_BASE_URL"
     echo "  - DEEPAMPEP30_MICROSERVICE_BASE_URL"
@@ -115,7 +115,7 @@ if grep -q "127\.0\.0\.1\|172\.17\.0\.1" "$ENV_FILE" 2>/dev/null; then
     echo "  - SSL_BESTOX_MICROSERVICE_BASE_URL"
     echo "  - AMP_REGRESSION_EC_SA_PREDICT_BASE_URL"
     echo ""
-    
+
     read -p "已完成手動編輯？(y/n) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -138,10 +138,10 @@ if docker ps | grep -q "axpep-app"; then
     docker exec axpep-app php artisan config:clear || log_warning "config:clear 失敗"
     docker exec axpep-app php artisan cache:clear || log_warning "cache:clear 失敗"
     docker exec axpep-app php artisan route:clear || log_warning "route:clear 失敗"
-    
+
     log_info "重新生成配置緩存..."
     docker exec axpep-app php artisan config:cache || log_warning "config:cache 失敗"
-    
+
     log_success "緩存清理完成"
 else
     log_warning "axpep-app 容器未運行，跳過緩存清理"
@@ -157,10 +157,10 @@ log_info "步驟 5/6: 重啟 Docker 容器..."
 if [ -f "$COMPOSE_FILE" ]; then
     log_info "重啟容器中..."
     docker compose -f "$COMPOSE_FILE" restart
-    
+
     log_info "等待容器啟動（10秒）..."
     sleep 10
-    
+
     log_success "容器重啟完成"
 else
     log_warning "找不到 $COMPOSE_FILE，請手動重啟容器"
@@ -178,9 +178,9 @@ test_microservice() {
     local name=$1
     local port=$2
     local url="http://host.docker.internal:$port/health"
-    
+
     log_info "測試 $name ($port)..."
-    
+
     if docker exec axpep-app curl -s -f --max-time 5 "$url" > /dev/null 2>&1; then
         log_success "$name 連接成功 ✅"
         return 0
