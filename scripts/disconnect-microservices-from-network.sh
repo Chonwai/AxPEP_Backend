@@ -20,7 +20,7 @@ log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[✓]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[⚠]${NC} $1"; }
 log_error() { echo -e "${RED}[✗]${NC} $1"; }
-log_section() { 
+log_section() {
     echo ""
     echo -e "${CYAN}========================================${NC}"
     echo -e "${CYAN}$1${NC}"
@@ -49,9 +49,9 @@ declare -A MICROSERVICES=(
 is_container_connected() {
     local container=$1
     local network=$2
-    
+
     local networks=$(docker inspect "$container" --format '{{range $net, $conf := .NetworkSettings.Networks}}{{$net}} {{end}}' 2>/dev/null)
-    
+
     if echo "$networks" | grep -q "$network"; then
         return 0
     else
@@ -65,21 +65,21 @@ is_container_connected() {
 disconnect_container() {
     local container=$1
     local description=$2
-    
+
     log_info "處理容器: $container ($description)"
-    
+
     # 檢查容器是否存在
     if ! docker ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
         log_warning "  容器不存在，跳過"
         return 0
     fi
-    
+
     # 檢查是否已連接
     if ! is_container_connected "$container" "$TARGET_NETWORK"; then
         log_success "  未連接到 $TARGET_NETWORK，無需斷開"
         return 0
     fi
-    
+
     # 斷開連接
     log_info "  正在斷開與 $TARGET_NETWORK 的連接..."
     if docker network disconnect "$TARGET_NETWORK" "$container" 2>/dev/null; then
@@ -96,11 +96,11 @@ disconnect_container() {
 ################################################################################
 disconnect_all_microservices() {
     log_section "斷開微服務網絡連接"
-    
+
     local success_count=0
     local skip_count=0
     local fail_count=0
-    
+
     for container in "${!MICROSERVICES[@]}"; do
         if disconnect_container "$container" "${MICROSERVICES[$container]}"; then
             if docker ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
@@ -116,7 +116,7 @@ disconnect_all_microservices() {
             ((fail_count++))
         fi
     done
-    
+
     echo ""
     log_info "斷開結果統計："
     log_success "  成功: $success_count"
@@ -124,7 +124,7 @@ disconnect_all_microservices() {
     if [ $fail_count -gt 0 ]; then
         log_error "  失敗: $fail_count"
     fi
-    
+
     return $fail_count
 }
 
@@ -133,14 +133,14 @@ disconnect_all_microservices() {
 ################################################################################
 confirm_operation() {
     log_section "確認操作"
-    
+
     log_warning "此操作將斷開所有微服務容器與 docker_axpep-network 的連接"
     log_warning "AxPEP Backend 將無法通過容器名訪問微服務"
     echo ""
-    
+
     read -p "確認要繼續嗎？(y/n) " -n 1 -r
     echo
-    
+
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         log_info "操作已取消"
         exit 0
@@ -152,7 +152,7 @@ confirm_operation() {
 ################################################################################
 show_next_steps() {
     log_section "完成"
-    
+
     echo ""
     log_success "網絡連接已斷開！"
     echo ""
@@ -175,17 +175,17 @@ show_next_steps() {
 ################################################################################
 main() {
     log_section "微服務網絡斷開工具"
-    
+
     # 確認操作
     confirm_operation
-    
+
     # 執行斷開
     if disconnect_all_microservices; then
         log_success "所有操作完成！"
     else
         log_error "部分操作失敗"
     fi
-    
+
     show_next_steps
 }
 
