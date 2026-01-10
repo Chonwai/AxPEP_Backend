@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  app:
+    image: axpep-app:latest
+    container_name: axpep-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ..:/var/www
+    networks:
+      - axpep-network
+      - ampep-network
+      - bestox-network
+      - ssl-gcn-network
+    depends_on:
+      - redis
+    environment:
+      - DB_CONNECTION=${DB_CONNECTION}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    healthcheck:
+      test: ["CMD", "php", "-v"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: axpep-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ..:/var/www
+      - ../docker/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - axpep-network
+    depends_on:
+      - app
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  queue-worker:
+    image: axpep-app:latest
+    container_name: axpep-worker
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=300
+    volumes:
+      - ..:/var/www
+    networks:
+      - axpep-network
+      - ampep-network
+      - bestox-network
+      - ssl-gcn-network
+      - amp-regression-network
+      - default-network
+    depends_on:
+      - redis
+    environment:
+      - DB_CONNECTION=${DB_CONNECTION}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # 使用容器名稱直接通信
+      - AMPEP_MICROSERVICE_BASE_URL=http://docker-ampep-microservice-1:8001
+      - DEEPAMPEP30_MICROSERVICE_BASE_URL=http://deep-ampep30:8002
+      - BESTOX_MICROSERVICE_BASE_URL=http://bestox-api-service:8006
+      - SSL_BESTOX_MICROSERVICE_BASE_URL=http://ssl-gcn-toxicity-prediction:8007
+      - AMP_REGRESSION_MICROSERVICE_BASE_URL=http://amp_regression_ec_sa_fastapi-amp-regression-predict-flask-1:8888
+    healthcheck:
+      test: ["CMD", "php", "artisan", "queue:work", "--once"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+
+  redis:
+    image: redis:alpine
+    container_name: axpep-redis
+    restart: unless-stopped
+    networks:
+      - axpep-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  # 主網絡
+  axpep-network:
+    driver: bridge
+  
+  # 外部網絡 - 連接到現有微服務
+  ampep-network:
+    external: true
+    name: docker_ampep-network
+  
+  bestox-network:
+    external: true
+    name: bestox-network
+  
+  ssl-gcn-network:
+    external: true
+    name: docker_ssl-gcn-network
+  
+  amp-regression-network:
+    external: true
+    name: amp_regression_ec_sa_fastapi_default
+  
+  default-network:
+    external: true
+    name: docker_default
