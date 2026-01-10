@@ -38,17 +38,17 @@ check_environment() {
 backup_config() {
     local BACKUP_DIR="backups/multi_network_$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$BACKUP_DIR"
-    
+
     if [ -f "docker/docker-compose.yml" ]; then
         cp docker/docker-compose.yml "$BACKUP_DIR/docker-compose.yml"
         log_success "已備份 docker-compose.yml → $BACKUP_DIR"
     fi
-    
+
     if [ -f ".env" ]; then
         cp .env "$BACKUP_DIR/.env"
         log_success "已備份 .env → $BACKUP_DIR"
     fi
-    
+
     echo "$BACKUP_DIR" > .last_backup
 }
 
@@ -57,7 +57,7 @@ backup_config() {
 ################################################################################
 verify_networks() {
     log_section "1. 驗證外部網絡"
-    
+
     local networks=(
         "docker_ampep-network"
         "bestox-network"
@@ -65,9 +65,9 @@ verify_networks() {
         "amp_regression_ec_sa_fastapi_default"
         "docker_default"
     )
-    
+
     local missing_networks=()
-    
+
     for network in "${networks[@]}"; do
         if docker network inspect "$network" >/dev/null 2>&1; then
             log_success "✓ 網絡存在: $network"
@@ -76,7 +76,7 @@ verify_networks() {
             missing_networks+=("$network")
         fi
     done
-    
+
     if [ ${#missing_networks[@]} -gt 0 ]; then
         log_warning "以下網絡不存在，將從配置中移除："
         printf '  - %s\n' "${missing_networks[@]}"
@@ -93,12 +93,12 @@ verify_networks() {
 ################################################################################
 apply_config() {
     log_section "2. 應用多網絡配置"
-    
+
     if [ ! -f "docker/docker-compose.multi-network.yml" ]; then
         log_error "找不到 docker-compose.multi-network.yml"
         exit 1
     fi
-    
+
     # 複製配置
     cp docker/docker-compose.multi-network.yml docker/docker-compose.yml
     log_success "已應用多網絡配置"
@@ -109,28 +109,28 @@ apply_config() {
 ################################################################################
 update_env() {
     log_section "3. 更新 .env 配置"
-    
+
     log_info "將微服務 URL 更新為容器名稱..."
-    
+
     # 創建臨時文件
     cp .env .env.tmp
-    
+
     # 更新微服務 URL（使用容器名）
     sed -i.bak 's|AMPEP_MICROSERVICE_BASE_URL=.*|AMPEP_MICROSERVICE_BASE_URL="http://docker-ampep-microservice-1:8001"|' .env.tmp
     sed -i.bak 's|DEEPAMPEP30_MICROSERVICE_BASE_URL=.*|DEEPAMPEP30_MICROSERVICE_BASE_URL="http://deep-ampep30:8002"|' .env.tmp
     sed -i.bak 's|BESTOX_MICROSERVICE_BASE_URL=.*|BESTOX_MICROSERVICE_BASE_URL="http://bestox-api-service:8006"|' .env.tmp
     sed -i.bak 's|SSL_BESTOX_MICROSERVICE_BASE_URL=.*|SSL_BESTOX_MICROSERVICE_BASE_URL="http://ssl-gcn-toxicity-prediction:8007"|' .env.tmp
     sed -i.bak 's|AMP_REGRESSION_MICROSERVICE_BASE_URL=.*|AMP_REGRESSION_MICROSERVICE_BASE_URL="http://amp_regression_ec_sa_fastapi-amp-regression-predict-flask-1:8888"|' .env.tmp
-    
+
     # 確保 Redis 使用容器名
     sed -i.bak 's|REDIS_HOST=.*|REDIS_HOST=redis|' .env.tmp
-    
+
     # 顯示變更
     log_info "配置變更："
     echo ""
     grep "MICROSERVICE_BASE_URL" .env.tmp | sed 's/^/  /'
     echo ""
-    
+
     read -p "確認應用這些變更？(y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -148,13 +148,13 @@ update_env() {
 ################################################################################
 restart_containers() {
     log_section "4. 重啟容器"
-    
+
     log_info "停止現有容器..."
     docker compose -f docker/docker-compose.yml down
-    
+
     log_info "啟動新配置..."
     docker compose -f docker/docker-compose.yml up -d
-    
+
     log_success "容器已重啟"
 }
 
@@ -163,26 +163,26 @@ restart_containers() {
 ################################################################################
 verify_connectivity() {
     log_section "5. 驗證網絡連接"
-    
+
     # 等待容器啟動
     log_info "等待容器啟動（10秒）..."
     sleep 10
-    
+
     # 檢查容器狀態
     log_info "檢查容器狀態..."
     docker compose -f docker/docker-compose.yml ps
     echo ""
-    
+
     # 測試網絡連接
     log_info "測試微服務連接..."
-    
+
     local services=(
         "docker-ampep-microservice-1:8001"
         "deep-ampep30:8002"
         "bestox-api-service:8006"
         "ssl-gcn-toxicity-prediction:8007"
     )
-    
+
     for service in "${services[@]}"; do
         if docker exec axpep-worker curl -s -f --max-time 5 "http://$service/health" >/dev/null 2>&1; then
             log_success "✓ 可以連接: $service"
@@ -197,7 +197,7 @@ verify_connectivity() {
 ################################################################################
 show_next_steps() {
     log_section "部署完成"
-    
+
     echo ""
     log_success "多網絡方案已成功部署！"
     echo ""
@@ -225,7 +225,7 @@ show_next_steps() {
 ################################################################################
 main() {
     log_section "多網絡連接方案部署"
-    
+
     check_environment
     backup_config
     verify_networks

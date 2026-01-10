@@ -103,24 +103,24 @@ networks:
   # 主網絡
   axpep-network:
     driver: bridge
-  
+
   # 外部網絡 - 連接到現有微服務
   ampep-network:
     external: true
     name: docker_ampep-network
-  
+
   bestox-network:
     external: true
     name: bestox-network
-  
+
   ssl-gcn-network:
     external: true
     name: docker_ssl-gcn-network
-  
+
   amp-regression-network:
     external: true
     name: amp_regression_ec_sa_fastapi_default
-  
+
   default-network:
     external: true
     name: docker_default
