@@ -1,0 +1,153 @@
+# 方案 1: Host Network Mode - 快速修復方案
+# 使用宿主機網絡模式，容器可以直接訪問 127.0.0.1 上的服務
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: axpep-backend:latest
+    container_name: axpep-app
+    restart: unless-stopped
+    volumes:
+      - ../storage:/var/www/html/storage
+      - ../.env:/var/www/html/.env
+    depends_on:
+      redis:
+        condition: service_started
+    networks:
+      - axpep-network
+    environment:
+      - REDIS_HOST=redis
+      - APP_ENV=production
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  nginx:
+    image: nginx:alpine
+    container_name: axpep-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ../public:/var/www/html/public
+      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - axpep-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  queue-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    image: axpep-backend-worker:latest
+    container_name: axpep-worker
+    restart: unless-stopped
+    # ========================================
+    # 關鍵修改：使用宿主機網絡模式
+    # ========================================
+    network_mode: "host"
+    volumes:
+      - ../storage:/var/www/html/storage
+      - ../.env:/var/www/html/.env
+    environment:
+      - REDIS_HOST=127.0.0.1  # 使用 127.0.0.1 因為共享宿主機網絡
+      - APP_ENV=production
+    # 注意：使用 host 模式時，不能指定 networks 或 depends_on
+    healthcheck:
+      test: ["CMD", "php", "artisan", "queue:work", "--once", "--timeout=1"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2'
+        reservations:
+          memory: 2G
+          cpus: '1'
+
+  redis:
+    image: redis:alpine
+    container_name: axpep-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/etc/redis/redis.conf:ro
+    networks:
+      - axpep-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    command: redis-server /etc/redis/redis.conf
+
+volumes:
+  redis-data:
+    driver: local
+  nginx-logs:
+    driver: local
+
+networks:
+  axpep-network:
+    driver: bridge
+
+# ========================================
+# 使用說明
+# ========================================
+# 1. 修改 .env 文件：
+#    AMPEP_MICROSERVICE_BASE_URL="http://127.0.0.1:8001"
+#    DEEPAMPEP30_MICROSERVICE_BASE_URL="http://127.0.0.1:8002"
+#    BESTOX_MICROSERVICE_BASE_URL="http://127.0.0.1:8006"
+#    REDIS_HOST=127.0.0.1
+#
+# 2. 重啟容器：
+#    docker compose -f docker/docker-compose.yml down
+#    docker compose -f docker/docker-compose.yml up -d
+#
+# 3. 驗證：
+#    docker logs axpep-worker --tail 50
+#
+# 優點：
+#  - 最簡單，立即生效
+#  - 可以直接訪問 127.0.0.1 上的微服務
+#
+# 缺點：
+#  - 失去網絡隔離
+#  - Worker 容器可以訪問宿主機所有服務
+#  - 端口可能衝突
