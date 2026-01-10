@@ -25,7 +25,7 @@ services:
     # ========================================
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    
+
     # ========================================
     # 方法 2: 如果 host-gateway 不工作，手動指定 IP
     # 先執行: docker network inspect axpep-network | grep Gateway
@@ -33,7 +33,7 @@ services:
     # ========================================
     # extra_hosts:
     #   - "host.docker.internal:172.17.0.1"
-    
+
     healthcheck:
       test: ["CMD", "php-fpm", "-t"]
       interval: 30s
@@ -100,7 +100,7 @@ services:
       - "host.docker.internal:host-gateway"
       # 或手動指定 IP（如果 host-gateway 不工作）：
       # - "host.docker.internal:172.17.0.1"
-    
+
     healthcheck:
       test: ["CMD", "php", "artisan", "queue:work", "--once", "--timeout=1"]
       interval: 60s
@@ -163,7 +163,7 @@ networks:
 # 如果微服務監聽錯誤，修改微服務代碼：
 #  # Python Flask
 #  app.run(host='0.0.0.0', port=8001)
-#  
+#
 #  # Python FastAPI
 #  uvicorn.run(app, host='0.0.0.0', port=8001)
 #

@@ -2,7 +2,7 @@
 
 ################################################################################
 # Docker 網絡問題診斷工具
-# 
+#
 # 用途：在生產服務器上診斷 Docker 容器無法訪問宿主機服務的問題
 # 使用：在服務器上執行 ./scripts/diagnose-docker-network.sh
 ################################################################################
@@ -90,7 +90,7 @@ log_section "4. host.docker.internal 解析檢查"
 if docker ps | grep -q "axpep-worker"; then
     log_info "檢查 worker 容器的 /etc/hosts..."
     docker exec axpep-worker cat /etc/hosts | grep -E "(host\.docker\.internal|gateway)" || log_warning "未找到 host.docker.internal 配置"
-    
+
     echo ""
     log_info "測試 DNS 解析..."
     if docker exec axpep-worker getent hosts host.docker.internal; then
@@ -99,7 +99,7 @@ if docker ps | grep -q "axpep-worker"; then
     else
         log_fail "host.docker.internal 無法解析！"
     fi
-    
+
     echo ""
     log_info "測試 ping..."
     if docker exec axpep-worker ping -c 2 host.docker.internal 2>/dev/null; then
@@ -120,10 +120,10 @@ echo ""
 check_port() {
     local port=$1
     local service=$2
-    
+
     if netstat -tlnp 2>/dev/null | grep ":$port " || ss -tlnp 2>/dev/null | grep ":$port "; then
         log_success "$service (Port $port) 正在監聽"
-        
+
         # 檢查監聽地址
         LISTEN_ADDR=$(netstat -tlnp 2>/dev/null | grep ":$port " | awk '{print $4}' || ss -tlnp 2>/dev/null | grep ":$port " | awk '{print $4}')
         if echo "$LISTEN_ADDR" | grep -q "0.0.0.0:$port"; then
@@ -151,7 +151,7 @@ log_section "6. 從宿主機測試微服務連接"
 test_from_host() {
     local port=$1
     local service=$2
-    
+
     log_info "測試 $service (127.0.0.1:$port)..."
     if curl -s -f --max-time 3 "http://127.0.0.1:$port/health" > /dev/null 2>&1; then
         log_success "$service 在宿主機上可訪問"
@@ -173,13 +173,13 @@ if docker ps | grep -q "axpep-worker"; then
     test_from_container() {
         local port=$1
         local service=$2
-        
+
         log_info "測試 $service (host.docker.internal:$port)..."
         if docker exec axpep-worker curl -s -f --max-time 3 "http://host.docker.internal:$port/health" > /dev/null 2>&1; then
             log_success "$service 從容器可訪問"
         else
             log_fail "$service 從容器無法訪問"
-            
+
             # 嘗試其他地址
             log_info "  嘗試使用 172.17.0.1..."
             if docker exec axpep-worker curl -s -f --max-time 3 "http://172.17.0.1:$port/health" > /dev/null 2>&1; then
@@ -187,7 +187,7 @@ if docker ps | grep -q "axpep-worker"; then
             fi
         fi
     }
-    
+
     test_from_container 8001 "AmPEP"
     test_from_container 8002 "DeepAmPEP30"
     test_from_container 8006 "BESTox"
@@ -225,7 +225,7 @@ if [ -f "$COMPOSE_FILE" ]; then
     else
         log_fail "extra_hosts 配置缺失或不正確"
     fi
-    
+
     echo ""
     log_info "檢查網絡配置..."
     grep -A 5 "networks:" "$COMPOSE_FILE" | tail -10

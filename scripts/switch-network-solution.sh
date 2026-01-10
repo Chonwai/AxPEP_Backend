@@ -36,10 +36,10 @@ ${YELLOW}用法：${NC}
 ${YELLOW}可用方案：${NC}
   ${GREEN}1${NC} - Host Network Mode（最簡單，快速修復）
        容器使用宿主機網絡，可直接訪問 127.0.0.1
-       
+
   ${GREEN}2${NC} - Fixed Gateway（過渡方案）
        使用 host.docker.internal 並正確配置
-       
+
   ${GREEN}3${NC} - Full Containerized（最佳生產方案）
        所有微服務容器化，使用服務發現
 
@@ -64,7 +64,7 @@ check_environment() {
         log_error "請在 Laravel 項目根目錄執行此腳本！"
         exit 1
     fi
-    
+
     if [ ! -d "docker" ]; then
         log_error "找不到 docker 目錄！"
         exit 1
@@ -77,17 +77,17 @@ check_environment() {
 backup_config() {
     local BACKUP_DIR="backups/network_switch_$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$BACKUP_DIR"
-    
+
     if [ -f "docker/docker-compose.yml" ]; then
         cp docker/docker-compose.yml "$BACKUP_DIR/docker-compose.yml"
         log_success "已備份 docker-compose.yml"
     fi
-    
+
     if [ -f ".env" ]; then
         cp .env "$BACKUP_DIR/.env"
         log_success "已備份 .env"
     fi
-    
+
     echo "$BACKUP_DIR" > .last_backup
     log_info "備份位置: $BACKUP_DIR"
 }
@@ -99,7 +99,7 @@ apply_solution_1() {
     log_section "========================================="
     log_section "應用方案 1: Host Network Mode"
     log_section "========================================="
-    
+
     # 複製配置文件
     if [ -f "docker/docker-compose.host-network.yml" ]; then
         cp docker/docker-compose.host-network.yml docker/docker-compose.yml
@@ -108,7 +108,7 @@ apply_solution_1() {
         log_error "找不到 docker-compose.host-network.yml"
         exit 1
     fi
-    
+
     # 提示修改 .env
     log_warning "請確保 .env 文件中的配置如下："
     echo ""
@@ -118,7 +118,7 @@ apply_solution_1() {
     echo "  SSL_BESTOX_MICROSERVICE_BASE_URL=\"http://127.0.0.1:8007\""
     echo "  REDIS_HOST=127.0.0.1"
     echo ""
-    
+
     read -p "是否自動修改 .env 文件？(y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -126,12 +126,12 @@ apply_solution_1() {
         sed -i.bak 's|REDIS_HOST=redis|REDIS_HOST=127.0.0.1|g' .env
         log_success "已自動修改 .env"
     fi
-    
+
     # 重啟容器
     log_info "重啟容器..."
     docker compose -f docker/docker-compose.yml down
     docker compose -f docker/docker-compose.yml up -d
-    
+
     log_success "方案 1 應用完成！"
     echo ""
     log_info "優點："
@@ -150,12 +150,12 @@ apply_solution_2() {
     log_section "========================================="
     log_section "應用方案 2: Fixed Gateway"
     log_section "========================================="
-    
+
     # 檢查 Docker 版本
     DOCKER_VERSION=$(docker --version | grep -oP '\d+\.\d+' | head -1)
     MAJOR_VERSION=$(echo $DOCKER_VERSION | cut -d. -f1)
     MINOR_VERSION=$(echo $DOCKER_VERSION | cut -d. -f2)
-    
+
     if [ "$MAJOR_VERSION" -lt 20 ] || ([ "$MAJOR_VERSION" -eq 20 ] && [ "$MINOR_VERSION" -lt 10 ]); then
         log_warning "Docker 版本 < 20.10，host-gateway 可能不工作"
         log_info "當前版本: $DOCKER_VERSION"
@@ -165,7 +165,7 @@ apply_solution_2() {
             exit 1
         fi
     fi
-    
+
     # 複製配置文件
     if [ -f "docker/docker-compose.fixed-gateway.yml" ]; then
         cp docker/docker-compose.fixed-gateway.yml docker/docker-compose.yml
@@ -174,7 +174,7 @@ apply_solution_2() {
         log_error "找不到 docker-compose.fixed-gateway.yml"
         exit 1
     fi
-    
+
     # 提示修改 .env
     log_warning "請確保 .env 文件中的配置如下："
     echo ""
@@ -184,7 +184,7 @@ apply_solution_2() {
     echo "  SSL_BESTOX_MICROSERVICE_BASE_URL=\"http://host.docker.internal:8007\""
     echo "  REDIS_HOST=redis"
     echo ""
-    
+
     read -p "是否自動修改 .env 文件？(y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -192,15 +192,15 @@ apply_solution_2() {
         sed -i.bak 's|REDIS_HOST=127\.0\.0\.1|REDIS_HOST=redis|g' .env
         log_success "已自動修改 .env"
     fi
-    
+
     # 重啟容器
     log_info "重啟容器..."
     docker compose -f docker/docker-compose.yml down
     docker compose -f docker/docker-compose.yml up -d
-    
+
     # 等待啟動
     sleep 5
-    
+
     # 測試連接
     log_info "測試 host.docker.internal 解析..."
     if docker exec axpep-worker cat /etc/hosts | grep -q "host.docker.internal"; then
@@ -209,7 +209,7 @@ apply_solution_2() {
     else
         log_error "host.docker.internal 配置失敗！"
     fi
-    
+
     log_info "測試微服務連接..."
     if docker exec axpep-worker curl -s -f --max-time 3 "http://host.docker.internal:8001/health" > /dev/null 2>&1; then
         log_success "可以連接到 AmPEP 微服務"
@@ -220,7 +220,7 @@ apply_solution_2() {
         echo "  2. 檢查防火牆設置"
         echo "  3. 手動指定 Gateway IP（參考文檔）"
     fi
-    
+
     log_success "方案 2 應用完成！"
 }
 
@@ -231,7 +231,7 @@ apply_solution_3() {
     log_section "========================================="
     log_section "應用方案 3: Full Containerized"
     log_section "========================================="
-    
+
     log_warning "此方案需要為每個微服務創建 Dockerfile"
     log_info "請確保以下目錄存在並包含 Dockerfile："
     echo ""
@@ -241,14 +241,14 @@ apply_solution_3() {
     echo "  ../../SSL-GCN/Dockerfile"
     echo "  ../../AMP_Regression/Dockerfile"
     echo ""
-    
+
     read -p "是否已準備好所有 Dockerfile？(y/n) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         log_info "請先為微服務創建 Dockerfile，參考文檔中的模板"
         exit 0
     fi
-    
+
     # 複製配置文件
     if [ -f "docker/docker-compose.full-containerized.yml" ]; then
         cp docker/docker-compose.full-containerized.yml docker/docker-compose.yml
@@ -257,7 +257,7 @@ apply_solution_3() {
         log_error "找不到 docker-compose.full-containerized.yml"
         exit 1
     fi
-    
+
     # 提示修改 .env
     log_warning "請確保 .env 文件中使用服務名稱："
     echo ""
@@ -267,7 +267,7 @@ apply_solution_3() {
     echo "  SSL_BESTOX_MICROSERVICE_BASE_URL=\"http://ssl-gcn-service:8007\""
     echo "  REDIS_HOST=redis"
     echo ""
-    
+
     read -p "是否自動修改 .env 文件？(y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -278,14 +278,14 @@ apply_solution_3() {
         sed -i.bak 's|http://[^:]*:8889|http://amp-regression-service:8889|g' .env
         log_success "已自動修改 .env"
     fi
-    
+
     # 構建並啟動
     log_info "構建所有服務鏡像（這可能需要一些時間）..."
     docker compose -f docker/docker-compose.yml build
-    
+
     log_info "啟動所有服務..."
     docker compose -f docker/docker-compose.yml up -d
-    
+
     log_success "方案 3 應用完成！"
 }
 
@@ -296,7 +296,7 @@ run_diagnosis() {
     log_section "========================================="
     log_section "運行網絡診斷"
     log_section "========================================="
-    
+
     if [ -f "scripts/diagnose-docker-network.sh" ]; then
         bash scripts/diagnose-docker-network.sh
     else
@@ -310,15 +310,15 @@ run_diagnosis() {
 ################################################################################
 main() {
     check_environment
-    
+
     # 如果沒有參數，顯示幫助
     if [ $# -eq 0 ]; then
         show_help
         exit 0
     fi
-    
+
     local SOLUTION=$1
-    
+
     case $SOLUTION in
         1)
             backup_config
@@ -344,7 +344,7 @@ main() {
             exit 1
             ;;
     esac
-    
+
     # 顯示下一步
     echo ""
     log_section "========================================="
