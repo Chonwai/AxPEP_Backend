@@ -19,12 +19,10 @@ services:
         condition: service_started
     networks:
       - axpep-network
+      - axpep-ecosystem-network
     environment:
       - REDIS_HOST=redis
       - APP_ENV=production
-    # 修復 Linux 環境下 host.docker.internal 問題
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "php-fpm", "-t"]
       interval: 30s
@@ -82,12 +80,10 @@ services:
         condition: service_healthy
     networks:
       - axpep-network
+      - axpep-ecosystem-network
     environment:
       - REDIS_HOST=redis
       - APP_ENV=production
-    # 修復 Linux 環境下 host.docker.internal 問題
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "php", "artisan", "queue:work", "--once", "--timeout=1"]
       interval: 60s
@@ -135,3 +131,5 @@ volumes:
 networks:
   axpep-network:
     driver: bridge
+  axpep-ecosystem-network:
+    external: true
