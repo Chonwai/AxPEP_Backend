@@ -675,7 +675,8 @@ class TaskUtils
     }
 
     /**
-     * 使用 BESTox 微服務進行毒性預測，並寫出 result.csv（格式：id,smiles,pre）
+     * 使用 BESTox 微服務進行毒性預測，並寫出 result.csv
+     * 格式（兼容舊版與新版）：ID, SMILES, -log10(LD50), LD50, pre
      * 失敗時拋出例外，交由上層回退到本地腳本
      */
     public static function runBESToxMicroservice($task)
@@ -699,7 +700,8 @@ class TaskUtils
     }
 
     /**
-     * 將 BESTox 微服務結果寫為 result.csv（格式：id,smiles,pre）
+     * 將 BESTox 微服務結果寫為 result.csv
+     * 格式（兼容舊版與新版）：ID, SMILES, -log10(LD50), LD50, pre
      * 與現有本地腳本輸出格式保持一致
      */
     private static function writeBESToxMicroserviceResults($taskId, array $results): void
@@ -745,8 +747,8 @@ class TaskUtils
             throw new \RuntimeException("Unable to open output file for writing: $outputPath");
         }
 
-        // 寫入 CSV 表頭（與舊版本格式一致）
-        fputcsv($fp, ['id', 'smiles', 'pre']);
+        // 寫入 CSV 表頭（保留舊版欄位並新增 pre 以兼容新版）
+        fputcsv($fp, ['ID', 'SMILES', '-log10(LD50)', 'LD50', 'pre']);
 
         // 依照原始順序寫入結果
         foreach ($originalOrder as $original) {
@@ -757,14 +759,21 @@ class TaskUtils
             $result = $resultMap[$moleculeId] ?? $resultMap[$smiles] ?? null;
 
             if ($result && $result['status'] === 'success' && $result['ld50'] !== null) {
-                // 成功預測：使用 LD50 值作為 pre 欄位
-                $predictionValue = $result['ld50'];
-                fputcsv($fp, [$moleculeId, $smiles, sprintf('%.6f', $predictionValue)]);
+                // 成功預測：LD50 與 -log10(LD50)
+                $ld50 = (float) $result['ld50'];
+                $log10 = isset($result['log10_ld50']) && is_numeric($result['log10_ld50'])
+                    ? (float) $result['log10_ld50']
+                    : ($ld50 > 0 ? log10($ld50) : null);
+                $negLog10 = $log10 !== null ? -$log10 : null;
+                $ld50Formatted = sprintf('%.6f', $ld50);
+                $negLog10Formatted = $negLog10 !== null ? sprintf('%.6f', $negLog10) : '';
+
+                fputcsv($fp, [$moleculeId, $smiles, $negLog10Formatted, $ld50Formatted, $ld50Formatted]);
             } else {
                 // 預測失敗或無結果：使用預設值
                 $errorMsg = $result['error'] ?? 'No prediction available';
                 Log::warning("BESTox prediction failed for $moleculeId ($smiles): $errorMsg");
-                fputcsv($fp, [$moleculeId, $smiles, '0.000000']); // 預設值
+                fputcsv($fp, [$moleculeId, $smiles, '0.000000', '0.000000', '0.000000']); // 預設值
             }
         }
 

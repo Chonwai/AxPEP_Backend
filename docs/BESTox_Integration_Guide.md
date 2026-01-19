@@ -15,8 +15,8 @@ BESTox 微服務整合已完成！本系統現在支援透過 RESTful API 進行
 
 ### 資料格式相容性
 - ✅ **輸入格式**: `input.smi` 檔案（SMILES 格式）
-- ✅ **輸出格式**: `result.csv` 檔案（id,smiles,pre 三欄）
-- ✅ **向後相容**: 與現有前端和下載功能完全相容
+- ✅ **輸出格式**: `result.csv` 檔案（ID, SMILES, -log10(LD50), LD50, pre）
+- ✅ **向後相容**: 舊版前端可讀取 ID/SMILES/-log10(LD50)/LD50，新版可讀取 pre
 
 ## 🔧 環境配置
 
