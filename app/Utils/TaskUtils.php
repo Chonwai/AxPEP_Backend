@@ -80,7 +80,7 @@ class TaskUtils
             self::writeAmPEP30MicroserviceResults($task->id, 'rfampep30', $results);
             Log::info("RFAmPEP30 microservice prediction completed, TaskID: {$task->id}");
         } catch (\Exception $e) {
-            Log::error("RFAmPEP30 microservice failed, TaskID: {$task->id}, Error: ".$e->getMessage());
+            Log::error("RFAmPEP30 microservice failed, TaskID: {$task->id}, Error: " . $e->getMessage());
             throw $e;
         }
     }
@@ -103,7 +103,7 @@ class TaskUtils
             self::writeAmPEP30MicroserviceResults($task->id, 'deepampep30', $results);
             Log::info("DeepAmPEP30 microservice prediction completed, TaskID: {$task->id}");
         } catch (\Exception $e) {
-            Log::error("DeepAmPEP30 microservice failed, TaskID: {$task->id}, Error: ".$e->getMessage());
+            Log::error("DeepAmPEP30 microservice failed, TaskID: {$task->id}, Error: " . $e->getMessage());
             throw $e;
         }
     }
@@ -148,7 +148,7 @@ class TaskUtils
                 }
 
                 if ($payload === null) {
-                    Log::warning("[$method] Missing prediction for index $index (".$sequenceName.") in task $taskId");
+                    Log::warning("[$method] Missing prediction for index $index (" . $sequenceName . ") in task $taskId");
 
                     continue;
                 }
@@ -195,10 +195,10 @@ class TaskUtils
                 $lines[] = sprintf('%s %s %s', $sequenceName, $predictionNorm, (string) $probability);
             }
 
-            file_put_contents($outputPath, implode("\n", $lines)."\n");
-            Log::info("AmPEP30 microservice results written: {$outputPath}, total sequences: ".count($fastaSequenceNames));
+            file_put_contents($outputPath, implode("\n", $lines) . "\n");
+            Log::info("AmPEP30 microservice results written: {$outputPath}, total sequences: " . count($fastaSequenceNames));
         } catch (\Exception $e) {
-            Log::error("Write AmPEP30 microservice results failed, TaskID: {$taskId}, Error: ".$e->getMessage());
+            Log::error("Write AmPEP30 microservice results failed, TaskID: {$taskId}, Error: " . $e->getMessage());
             throw $e;
         }
     }
@@ -224,7 +224,7 @@ class TaskUtils
                 throw new \Exception('AmPEP微服務返回失敗狀態');
             }
         } catch (\Exception $e) {
-            Log::error("AmPEP微服務調用失敗，TaskID: {$task->id}, Error: ".$e->getMessage());
+            Log::error("AmPEP微服務調用失敗，TaskID: {$task->id}, Error: " . $e->getMessage());
             throw $e;
         }
     }
@@ -269,10 +269,9 @@ class TaskUtils
 
             // 寫入文件，保持與現有格式一致
             file_put_contents($outputPath, $content);
-            Log::info("AmPEP微服務結果已寫入文件: {$outputPath}，處理了".count($fastaSequenceNames).'個序列');
-
+            Log::info("AmPEP微服務結果已寫入文件: {$outputPath}，處理了" . count($fastaSequenceNames) . '個序列');
         } catch (\Exception $e) {
-            Log::error("寫入AmPEP微服務結果失敗，TaskID: {$taskId}, Error: ".$e->getMessage());
+            Log::error("寫入AmPEP微服務結果失敗，TaskID: {$taskId}, Error: " . $e->getMessage());
             throw $e;
         }
     }
@@ -292,7 +291,7 @@ class TaskUtils
             } catch (\Exception $e) {
                 // V2 API失敗時，回退到V1文件傳輸
                 Log::error("AMP Regression V2 API調用失敗，回退到V1文件傳輸，TaskID: {$task->id}, 錯誤: {$e->getMessage()}");
-                Log::error('V2 API URL: '.env('AMP_REGRESSION_EC_SA_PREDICT_BASE_URL', 'not_set'));
+                Log::error('V2 API URL: ' . env('AMP_REGRESSION_EC_SA_PREDICT_BASE_URL', 'not_set'));
             }
         }
 
@@ -318,9 +317,8 @@ class TaskUtils
             self::saveAmpRegressionResults($task->id, $result['predictions']);
 
             Log::info("AMP Regression V2 prediction completed for task: {$task->id}");
-
         } catch (\Exception $e) {
-            Log::error("AMP Regression V2 failed for task {$task->id}: ".$e->getMessage());
+            Log::error("AMP Regression V2 failed for task {$task->id}: " . $e->getMessage());
             throw $e;
         }
     }
@@ -349,7 +347,7 @@ class TaskUtils
             $process->setTimeout(3600);
             $process->run();
         } catch (\Exception $e) {
-            Log::error('AMP Regression V1 Microservice call failed: '.$e->getMessage());
+            Log::error('AMP Regression V1 Microservice call failed: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -409,12 +407,11 @@ class TaskUtils
             file_put_contents($resultPath, $csvData);
 
             if (app()->bound('log')) {
-                Log::info("AMP Regression V2 結果已保存: {$resultPath}，預測數量: ".count($predictions));
+                Log::info("AMP Regression V2 結果已保存: {$resultPath}，預測數量: " . count($predictions));
             }
-
         } catch (\Exception $e) {
             if (app()->bound('log')) {
-                Log::error("保存AMP Regression V2結果失敗，TaskID: {$taskId}, Error: ".$e->getMessage());
+                Log::error("保存AMP Regression V2結果失敗，TaskID: {$taskId}, Error: " . $e->getMessage());
             }
             throw $e;
         }
@@ -460,7 +457,7 @@ class TaskUtils
             self::writeAcPEPMicroserviceResults($task->id, $method, $results);
             Log::info("xDeep-AcPEP microservice prediction completed, TaskID: {$task->id}, method: {$method}");
         } catch (\Throwable $e) {
-            Log::error('xDeep-AcPEP microservice failed: '.$e->getMessage());
+            Log::error('xDeep-AcPEP microservice failed: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -538,7 +535,7 @@ class TaskUtils
             }
         }
         fclose($fp);
-        Log::info("xDeep-AcPEP CSV results written: {$outputPath}, total sequences: ".count($order));
+        Log::info("xDeep-AcPEP CSV results written: {$outputPath}, total sequences: " . count($order));
     }
 
     /**
@@ -560,7 +557,7 @@ class TaskUtils
             self::writeAcPEPClassificationMicroserviceResults($task->id, $normalized);
             Log::info("xDeep-AcPEP-Classification microservice completed, TaskID: {$task->id}");
         } catch (\Throwable $e) {
-            Log::error('xDeep-AcPEP-Classification microservice failed: '.$e->getMessage());
+            Log::error('xDeep-AcPEP-Classification microservice failed: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -620,8 +617,8 @@ class TaskUtils
             }
         }
 
-        file_put_contents($outputPath, implode("\n", $lines)."\n");
-        Log::info("xDeep-AcPEP-Classification results written: {$outputPath}, total sequences: ".count($order));
+        file_put_contents($outputPath, implode("\n", $lines) . "\n");
+        Log::info("xDeep-AcPEP-Classification results written: {$outputPath}, total sequences: " . count($order));
     }
 
     public static function runCodonTask($task, $codonCode = '1')
@@ -657,7 +654,7 @@ class TaskUtils
             file_put_contents($outputPath, (string) ($result['fasta'] ?? ''));
             Log::info("Codon microservice generated fasta for TaskID: {$task->id}");
         } catch (\Throwable $e) {
-            Log::error('Codon microservice failed: '.$e->getMessage());
+            Log::error('Codon microservice failed: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -694,7 +691,7 @@ class TaskUtils
             self::writeBESToxMicroserviceResults($task->id, $results);
             Log::info("BESTox microservice prediction completed, TaskID: {$task->id}");
         } catch (\Throwable $e) {
-            Log::error('BESTox microservice failed: '.$e->getMessage());
+            Log::error('BESTox microservice failed: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -724,7 +721,7 @@ class TaskUtils
 
             $parts = preg_split('/\s+/', $line, 2);
             $smiles = $parts[0];
-            $moleculeId = isset($parts[1]) ? $parts[1] : 'mol_'.($index + 1);
+            $moleculeId = isset($parts[1]) ? $parts[1] : 'mol_' . ($index + 1);
 
             $originalOrder[] = [
                 'smiles' => $smiles,
@@ -778,7 +775,7 @@ class TaskUtils
         }
 
         fclose($fp);
-        Log::info("BESTox microservice results written: {$outputPath}, total molecules: ".count($originalOrder));
+        Log::info("BESTox microservice results written: {$outputPath}, total molecules: " . count($originalOrder));
     }
 
     public static function runSSLBESToxTask($task, $method)
@@ -947,9 +944,8 @@ class TaskUtils
                 'total_molecules' => count($originalMolecules),
                 'method' => $method,
             ]);
-
         } catch (\Exception $e) {
-            Log::error('Failed to write SSL-GCN microservice results: '.$e->getMessage());
+            Log::error('Failed to write SSL-GCN microservice results: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -1022,7 +1018,7 @@ class TaskUtils
                 throw new \Exception('Microservice response is not successful');
             }
         } catch (\Exception $e) {
-            Log::error('Ecotoxicology Microservice call failed: '.$e->getMessage());
+            Log::error('Ecotoxicology Microservice call failed: ' . $e->getMessage());
 
             return;
         }
