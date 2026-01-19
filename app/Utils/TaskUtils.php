@@ -673,7 +673,7 @@ class TaskUtils
 
     /**
      * 使用 BESTox 微服務進行毒性預測，並寫出 result.csv
-     * 格式（兼容舊版與新版）：ID, SMILES, -log10(LD50), LD50, pre
+     * 格式（舊版相容）：ID, SMILES, -log10(LD50), LD50
      * 失敗時拋出例外，交由上層回退到本地腳本
      */
     public static function runBESToxMicroservice($task)
@@ -698,7 +698,7 @@ class TaskUtils
 
     /**
      * 將 BESTox 微服務結果寫為 result.csv
-     * 格式（兼容舊版與新版）：ID, SMILES, -log10(LD50), LD50, pre
+     * 格式（舊版相容）：ID, SMILES, -log10(LD50), LD50
      * 與現有本地腳本輸出格式保持一致
      */
     private static function writeBESToxMicroserviceResults($taskId, array $results): void
@@ -744,8 +744,8 @@ class TaskUtils
             throw new \RuntimeException("Unable to open output file for writing: $outputPath");
         }
 
-        // 寫入 CSV 表頭（保留舊版欄位並新增 pre 以兼容新版）
-        fputcsv($fp, ['ID', 'SMILES', '-log10(LD50)', 'LD50', 'pre']);
+        // 寫入 CSV 表頭（舊版格式）
+        fputcsv($fp, ['ID', 'SMILES', '-log10(LD50)', 'LD50']);
 
         // 依照原始順序寫入結果
         foreach ($originalOrder as $original) {
@@ -765,12 +765,12 @@ class TaskUtils
                 $ld50Formatted = sprintf('%.6f', $ld50);
                 $negLog10Formatted = $negLog10 !== null ? sprintf('%.6f', $negLog10) : '';
 
-                fputcsv($fp, [$moleculeId, $smiles, $negLog10Formatted, $ld50Formatted, $ld50Formatted]);
+                fputcsv($fp, [$moleculeId, $smiles, $negLog10Formatted, $ld50Formatted]);
             } else {
                 // 預測失敗或無結果：使用預設值
                 $errorMsg = $result['error'] ?? 'No prediction available';
                 Log::warning("BESTox prediction failed for $moleculeId ($smiles): $errorMsg");
-                fputcsv($fp, [$moleculeId, $smiles, '0.000000', '0.000000', '0.000000']); // 預設值
+                fputcsv($fp, [$moleculeId, $smiles, '0.000000', '0.000000']); // 預設值
             }
         }
 
