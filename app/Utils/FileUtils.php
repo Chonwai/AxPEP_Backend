@@ -14,27 +14,27 @@ class FileUtils
     public static function createResultFile($path, $methods)
     {
         $methodString = self::prepareMethodString($methods);
-        Storage::put($path.'classification.csv', 'id,'.$methodString."number_of_positives,sequence\n");
-        Storage::put($path.'score.csv', 'id,'.$methodString."product_of_probability,sequence\n");
+        Storage::put($path . 'classification.csv', 'id,' . $methodString . "number_of_positives,sequence\n");
+        Storage::put($path . 'score.csv', 'id,' . $methodString . "product_of_probability,sequence\n");
     }
 
     public static function createAcPEPResultFile($path, $methods)
     {
         $methodString = self::prepareMethodString($methods);
-        Storage::put($path.'classification.csv', 'id,'.$methodString."sequence\n");
-        Storage::put($path.'score.csv', "id,classification,score,sequence\n");
+        Storage::put($path . 'classification.csv', 'id,' . $methodString . "sequence\n");
+        Storage::put($path . 'score.csv', "id,classification,score,sequence\n");
     }
 
     public static function createSSLBESToxResultFile($path, $methods)
     {
         $methodString = self::prepareMethodString($methods);
-        Storage::put($path.'classification.csv', 'id,'.$methodString."smiles\n");
+        Storage::put($path . 'classification.csv', 'id,' . $methodString . "smiles\n");
     }
 
     public static function createEcotoxicologyResultFile($path, $methods)
     {
         $methodString = self::prepareMethodString($methods);
-        Storage::put($path.'classification.csv', 'id,'.$methodString."smiles\n");
+        Storage::put($path . 'classification.csv', 'id,' . $methodString . "smiles\n");
     }
 
     public static function insertSequencesAndHeaderOnResult($path, $methods, $function = 'AmPEP')
@@ -50,7 +50,12 @@ class FileUtils
             return [$classifications];
         } elseif ($application === 'AmPEP') {
             $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
-            $ampActivityPrediction = Excel::toArray(new AmPEPResultImport, "Tasks/$id/amp_activity_prediction.csv", null, \Maatwebsite\Excel\Excel::CSV);
+            if (Storage::disk('local')->exists("Tasks/$id/amp_activity_prediction.csv")) {
+                $ampActivityPrediction = Excel::toArray(new AmPEPResultImport, "Tasks/$id/amp_activity_prediction.csv", null, \Maatwebsite\Excel\Excel::CSV);
+            } else {
+                $ampActivityPrediction = [[]];
+                Log::warning("amp_activity_prediction.csv not found for task {$id}; skip AMP regression results.");
+            }
 
             return [$classifications, $scores, $ampActivityPrediction];
         } else {
@@ -178,7 +183,7 @@ class FileUtils
                 throw new \Exception("找不到HemoPep詳細結果文件: $detailedCsvPath");
             }
         } catch (\Exception $e) {
-            Log::error('寫入HemoPep結果文件錯誤: '.$e->getMessage());
+            Log::error('寫入HemoPep結果文件錯誤: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -362,7 +367,7 @@ class FileUtils
     {
         $methodString = '';
         foreach ($methods as $key => $value) {
-            $methodString = $methodString."$value,";
+            $methodString = $methodString . "$value,";
         }
 
         return $methodString;
@@ -374,15 +379,15 @@ class FileUtils
         foreach ($methods as $key => $value) {
             array_push($methodArray, '');
         }
-        $fInput = fopen($path.'input.fasta', 'r');
-        $fClassification = fopen($path.'classification.csv', 'a+');
+        $fInput = fopen($path . 'input.fasta', 'r');
+        $fClassification = fopen($path . 'classification.csv', 'a+');
 
         switch ($function) {
             case 'AmPEP':
-                $fScore = fopen($path.'score.csv', 'a+');
+                $fScore = fopen($path . 'score.csv', 'a+');
                 break;
             case 'AcPEP':
-                $fScore = fopen($path.'score.csv', 'a+');
+                $fScore = fopen($path . 'score.csv', 'a+');
                 break;
             case 'BESTox':
                 $fScore = null;
@@ -394,7 +399,7 @@ class FileUtils
                 $fScore = null;
                 break;
             default:
-                $fScore = fopen($path.'score.csv', 'a+');
+                $fScore = fopen($path . 'score.csv', 'a+');
                 break;
         }
 
