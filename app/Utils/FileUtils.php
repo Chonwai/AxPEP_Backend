@@ -50,7 +50,12 @@ class FileUtils
             return [$classifications];
         } elseif ($application === 'AmPEP') {
             $scores = Excel::toArray(new AmPEPResultImport, "Tasks/$id/score.csv", null, \Maatwebsite\Excel\Excel::CSV);
-            $ampActivityPrediction = Excel::toArray(new AmPEPResultImport, "Tasks/$id/amp_activity_prediction.csv", null, \Maatwebsite\Excel\Excel::CSV);
+            if (Storage::disk('local')->exists("Tasks/$id/amp_activity_prediction.csv")) {
+                $ampActivityPrediction = Excel::toArray(new AmPEPResultImport, "Tasks/$id/amp_activity_prediction.csv", null, \Maatwebsite\Excel\Excel::CSV);
+            } else {
+                $ampActivityPrediction = [[]];
+                Log::warning("amp_activity_prediction.csv not found for task {$id}; skip AMP regression results.");
+            }
 
             return [$classifications, $scores, $ampActivityPrediction];
         } else {
